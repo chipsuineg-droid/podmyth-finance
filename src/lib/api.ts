@@ -4,8 +4,13 @@ export interface ApiResponse<T = unknown> {
   error?: string
 }
 
-export function ok<T>(data: T): Response {
-  return Response.json({ data } satisfies ApiResponse<T>)
+export function ok<T>(data: T, headers?: HeadersInit): Response {
+  return Response.json({ data } satisfies ApiResponse<T>, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      ...headers,
+    }
+  })
 }
 
 export function err(message: string, status = 400): Response {

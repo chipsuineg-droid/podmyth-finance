@@ -86,7 +86,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
   }
 
   useEffect(() => {
-    fetch('/api/analytics')
+    fetch('/api/analytics', { cache: 'no-store' })
       .then(r => r.json())
       .then(json => {
         if (json.data) {
