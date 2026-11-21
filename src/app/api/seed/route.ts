@@ -18,7 +18,9 @@ export async function GET(req: Request) {
     }
 
     // Run the authentic seed script
-    const { main: runSeed } = require('../../../../../prisma/seed.js')
+    const path = await import('path')
+    const seedPath = path.join(process.cwd(), 'prisma', 'seed.js')
+    const { main: runSeed } = require(seedPath)
     await runSeed()
 
     const [productCount, invoiceCount, variantCount] = await Promise.all([

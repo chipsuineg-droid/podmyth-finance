@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { formatCurrency, calcOrderTotals } from '@/lib/finance'
@@ -38,7 +38,7 @@ function newItem(): LineItem {
   return { tempId: Math.random().toString(36).slice(2), variantId: null, description: '', notes: '', qty: 1, buyingPrice: 0, sellingPrice: 0 }
 }
 
-export function DocumentBuilder({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
+function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [clients, setClients] = useState<Client[]>([])
@@ -476,5 +476,13 @@ export function DocumentBuilder({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
         </div>
       )}
     </div>
+  )
+}
+
+export function DocumentBuilder({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-gray-400">Loading...</div>}>
+      <DocumentBuilderInner type={type} />
+    </Suspense>
   )
 }
