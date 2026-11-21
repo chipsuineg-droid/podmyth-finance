@@ -36,9 +36,9 @@ export async function GET(req: Request) {
 
   const variants = await prisma.variant.findMany({
     where: { product: { isService: false } },
-    select: { stockQty: true, defaultBuyPrice: true }
+    select: { stockQty: true, defaultSellPrice: true }
   })
-  const inventoryValue = variants.reduce((s, v) => s + v.stockQty * Number(v.defaultBuyPrice), 0)
+  const inventoryValue = variants.reduce((s, v) => s + v.stockQty * Number(v.defaultSellPrice), 0)
 
   const grossRevenue = Number(invoiceAgg._sum.totalSellPrice ?? 0)
   const totalCOGS = Number(invoiceAgg._sum.totalBuyPrice ?? 0)

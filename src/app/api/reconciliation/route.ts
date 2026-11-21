@@ -52,7 +52,7 @@ export async function GET(req: Request) {
   ])
 
   const liveStockValue = physicalVariants.reduce(
-    (sum, v) => sum + v.stockQty * Number(v.defaultBuyPrice),
+    (sum, v) => sum + v.stockQty * Number(v.defaultSellPrice),
     0
   )
 

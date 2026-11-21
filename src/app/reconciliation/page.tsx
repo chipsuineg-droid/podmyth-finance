@@ -335,7 +335,7 @@ export default function ReconciliationReportPage() {
                   1. Stock Inventory Valuation
                 </h3>
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                  At Unit Buying Cost
+                  At Retail Selling Price
                 </span>
               </div>
               <table className="w-full text-xs border border-[#E5E5E5]">

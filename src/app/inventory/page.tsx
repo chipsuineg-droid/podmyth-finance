@@ -69,7 +69,7 @@ export default function InventoryCatalogPage() {
 
   const totalInventoryValuation = variants
     .filter(v => !v.product.isService)
-    .reduce((s, v) => s + v.stockQty * v.defaultBuyPrice, 0)
+    .reduce((s, v) => s + v.stockQty * v.defaultSellPrice, 0)
 
   const lowStockCount = variants
     .filter(v => !v.product.isService && v.stockQty <= v.lowStockThreshold).length
@@ -109,9 +109,9 @@ export default function InventoryCatalogPage() {
         </div>
 
         <div className="stat-card border-l-4 border-l-green-600">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Inventory Value (at Buying Cost)</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Stock Value (at Selling Price)</p>
           <p className="text-2xl font-black text-[#111111] tabular-nums">{formatCurrency(totalInventoryValuation)}</p>
-          <p className="text-[11px] text-gray-400 mt-0.5">Asset balance for Balance Sheet</p>
+          <p className="text-[11px] text-gray-400 mt-0.5">Asset valuation at retail selling value</p>
         </div>
 
         <div className={`stat-card border-l-4 ${lowStockCount > 0 ? 'border-l-[#C62828]' : 'border-l-gray-300'}`}>

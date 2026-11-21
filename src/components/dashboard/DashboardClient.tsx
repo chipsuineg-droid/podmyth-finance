@@ -198,7 +198,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
             {formatCurrency(stockAvailable)}
           </p>
           <p className="text-[11px] text-gray-500 mt-2 font-medium">
-            Verified retail shop inventory
+            Verified stock at retail selling price
           </p>
         </div>
 
