@@ -69,6 +69,8 @@ export default function SubscriptionsPage() {
             <tbody className="divide-y divide-[#E5E5E5]">
               {loading ? (
                 <tr><td colSpan={months.length + 2} className="py-12 text-center text-gray-400">Loading subscriptions...</td></tr>
+              ) : matrix.length === 0 ? (
+                <tr><td colSpan={months.length + 2} className="py-12 text-center text-xs text-gray-400">No member contributions recorded ($0.00). Baseline active.</td></tr>
               ) : matrix.map(m => (
                 <tr key={m.name} className="hover:bg-[#F8F9FA]">
                   <td className="py-3 px-4 font-bold text-[#111111]">{m.name}</td>

@@ -48,12 +48,20 @@ export async function GET(req: Request) {
   const totalCollected = Number(paymentAgg._sum.amount ?? 0)
   const arBalance = Number(ar._sum.totalSellPrice ?? 0) - Number(ar._sum.amountPaid ?? 0)
 
+  // Reconciled cash starting from $384 baseline minus overhead expenses plus post-baseline payments
+  const cutoffDate = new Date('2026-11-21T00:00:00.000Z')
+  const newPayments = await prisma.payment.aggregate({
+    where: { paidAt: { gt: cutoffDate } },
+    _sum: { amount: true }
+  })
+  const cashAvailable = 384.00 + Number(newPayments._sum.amount ?? 0) - totalExpenses
+
   return ok({
     grossRevenue, totalCOGS, grossProfit,
     grossMargin: grossRevenue > 0 ? (grossProfit / grossRevenue) * 100 : 0,
     totalExpenses, netProfit,
     netMargin: grossRevenue > 0 ? (netProfit / grossRevenue) * 100 : 0,
-    totalCollected, arBalance, inventoryValue,
+    totalCollected, arBalance, inventoryValue, cashAvailable,
     paymentsByMethod: paymentsByMethod.map(p => ({ method: p.method, amount: Number(p._sum.amount ?? 0) })),
   })
 }

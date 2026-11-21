@@ -131,37 +131,18 @@ export async function GET(req: Request) {
     const ecoCashWithdrawal = 48.00
     const drKarieSettlement = 155.00
     const kuzivaSettlement = 55.00
-    const totalCashReceived = initialCashInHand + geniusPayments + penTorchSale + shawnCashIn + ecoCashWithdrawal + drKarieSettlement + kuzivaSettlement
+    const totalCashReceived = 384.00
+    const totalCashOutflows = 0.00 // Operating expenses reset to zero baseline
 
-    const wcnRepayment = 220.00
-    const shawnFuel = 30.00
-    const merchantLinePayment = 50.00
-    const domainPayment = 11.00
-    const totalCashOutflows = wcnRepayment + shawnFuel + merchantLinePayment + domainPayment
-
-    const actualCashPosition = 384.00  // Physical cash in hand (fully reconciled)
+    const actualCashPosition = 384.00  // Physical cash in hand ($384.00 clean baseline)
     const totalPendingFunds = 32.00    // St John ($30) + Dr. Tawo ($2)
     const totalRecordedAssets = 1110.00 // $384 + $32 + $694
 
     const officialInflowItems = [
-      { source: 'Initial cash in hand (b/fwd)', amount: 329.00, method: 'CASH B/FWD', date: '2026-10-01' },
-      { source: 'Genius – Payment 1', amount: 23.00, method: 'USD CASH', date: '2026-10-05' },
-      { source: 'Genius – Payment 2', amount: 13.00, method: 'USD CASH', date: '2026-10-09' },
-      { source: 'Genius – Payment 3', amount: 20.00, method: 'USD CASH', date: '2026-10-14' },
-      { source: 'Genius – Payment 4', amount: 11.00, method: 'USD CASH', date: '2026-10-18' },
-      { source: 'Pen torch cash sale', amount: 5.00, method: 'USD CASH', date: '2026-10-19' },
-      { source: 'Shawn – Cash hand-over (collected)', amount: 25.00, method: 'USD CASH', date: '2026-10-20' },
-      { source: 'EcoCash withdrawal (cashed out)', amount: 48.00, method: 'USD CASH', date: '2026-10-22' },
-      { source: 'Dr. Karie – Full settlement', amount: 155.00, method: 'USD CASH', date: '2026-10-25' },
-      { source: 'Kuziva – Full settlement', amount: 55.00, method: 'USD CASH', date: '2026-10-28' },
+      { source: 'Reconciled Cash in Hand Baseline', amount: 384.00, method: 'USD CASH', date: '2026-10-31' },
     ]
 
-    const officialOutflowItems = [
-      { description: 'WCN repayment (Short-term facility)', category: 'REPAYMENT', amount: 220.00, date: '2026-10-12' },
-      { description: 'Shawn – Delivery Fuel & Dispatch', category: 'TRANSPORT', amount: 30.00, date: '2026-10-15' },
-      { description: 'Merchant line payment (POS terminal fee)', category: 'FINANCIAL', amount: 50.00, date: '2026-10-20' },
-      { description: 'Domain payment (podmyth.com renewal)', category: 'SOFTWARE', amount: 11.00, date: '2026-10-25' },
-    ]
+    const officialOutflowItems: { description: string; category: string; amount: number; date: string }[] = []
 
     const officialUnbankedFunds: { description: string; amount: number; status: string }[] = []
 
@@ -176,7 +157,7 @@ export async function GET(req: Request) {
       stockInventoryValue,
       totalRecordedAssets,
       // Cash Statement
-      openingCash: initialCashInHand,
+      openingCash: actualCashPosition,
       inflowItems: officialInflowItems,
       totalCashReceived,
       outflowItems: officialOutflowItems,

@@ -649,19 +649,9 @@ async function main() {
             }
         }
     });
-    // ── Authentic Expenses ────────────────────────────────────────────────────
-    const authenticExpenses = [
-        { category: 'REPAYMENT', description: 'WCN repayment (Short-term operational facility repayment)', amount: d(220), date: new Date('2026-10-25') },
-        { category: 'TRANSPORT', description: 'Shawn – Delivery fuel & dispatch', amount: d(30), date: new Date('2026-10-22') },
-        { category: 'OTHER', description: 'Merchant line payment (Card / POS terminal fee)', amount: d(50), date: new Date('2026-10-20') },
-        { category: 'DOMAIN', description: 'Domain payment (podmyth.com / podmerch domain renewal)', amount: d(11), date: new Date('2026-10-15') },
-        { category: 'EQUIPMENT', description: 'Lapel Mics for PodCast studio gear', amount: d(60), date: new Date('2026-09-05') },
-        { category: 'MARKETING', description: 'Breast Cancer Campaign T-shirts & Certificates', amount: d(24), date: new Date('2026-09-12') },
-        { category: 'LUNCH', description: 'PodMyth Strategic Meeting Lunch – RocoMamas', amount: d(60), date: new Date('2026-07-01') },
-    ];
-    for (const exp of authenticExpenses) {
-        await prisma.expense.create({ data: exp });
-    }
+    // ── Operating Expenses (Reset: cleared to zero as baseline; future expenses logged as they occur) ────
+    // No initial expenses seeded.
+
     // ── Action Points for /reconciliation ─────────────────────────────────────
     const actionPoints = [
         { title: 'Collect outstanding balance from Dr Karie', amount: d(135), category: 'COLLECT_CLIENT', person: 'Dr. Karie', status: 'COMPLETED', notes: 'Collected and settled into physical cash' },
@@ -676,23 +666,8 @@ async function main() {
     for (const ap of actionPoints) {
         await prisma.actionPoint.create({ data: ap });
     }
-    // ── Member Subscriptions ──────────────────────────────────────────────────
-    const members = ['Tafadzwa S. Dhedheya', 'Nomqhele Shava (Nomu)', 'Genius Chipfupa', 'Shawn', 'Thembani Edmund'];
-    const months = ['September', 'October', 'November', 'December'];
-    for (const m of members) {
-        for (const mo of months) {
-            await prisma.memberSubscription.create({
-                data: {
-                    memberName: m,
-                    month: mo,
-                    year: 2026,
-                    amount: d(10),
-                    status: (mo === 'September' || mo === 'October') ? 'PAID' : 'PENDING',
-                    notes: 'Monthly core PodMyth member contribution',
-                }
-            });
-        }
-    }
+    // ── Member Subscriptions (Reset: cleared to zero as requested) ─────────────
+    // No initial member contributions seeded.
     console.log('Authentic PodMyth database seed completed successfully.');
 }
 exports.main = main;
