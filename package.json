@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && prisma db push --accept-data-loss && node scripts/seed-if-empty.js && next build",
+    "dev": "node scripts/prepare-db.js && prisma generate && next dev",
+    "build": "node scripts/prepare-db.js && prisma generate && prisma db push --accept-data-loss && node scripts/seed-if-empty.js && next build",
     "start": "next start",
-    "db:push": "prisma db push",
-    "db:seed": "node -r ts-node/register prisma/seed.ts",
+    "db:push": "node scripts/prepare-db.js && prisma db push",
+    "db:seed": "node prisma/seed.js",
     "db:studio": "prisma studio"
   },
   "dependencies": {
