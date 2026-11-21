@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { ok } from '@/lib/api'
 import { format } from 'date-fns'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const [documents, items, variants] = await Promise.all([
     prisma.document.findMany({

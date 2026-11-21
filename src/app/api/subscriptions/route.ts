@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { ok } from '@/lib/api'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const subs = await prisma.memberSubscription.findMany({
     orderBy: [{ memberName: 'asc' }, { year: 'desc' }]

@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { ok } from '@/lib/api'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const stockTakes = await prisma.stockTake.findMany({
     include: { lines: { include: { variant: { include: { product: true } } } } },

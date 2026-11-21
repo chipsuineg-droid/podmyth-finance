@@ -12,6 +12,8 @@ const ReceiveSchema = z.object({
   notes: z.string().optional(),
 })
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const lowStock = searchParams.get('lowStock') === 'true'

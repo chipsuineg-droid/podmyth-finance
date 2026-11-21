@@ -2,6 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { ok, err } from '@/lib/api'
 import { startOfMonth, endOfMonth, format } from 'date-fns'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const requestedMonth = searchParams.get('month') || '2026-10'
