@@ -4,19 +4,7 @@ import { ok, err } from '@/lib/api'
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const force = searchParams.get('force') === 'true'
-
   try {
-    const existingCount = await prisma.product.count()
-    if (existingCount > 0 && !force) {
-      return ok({
-        message: 'Database is already initialized.',
-        productCount: existingCount,
-        seeded: false,
-      })
-    }
-
     // Run the authentic seed script
     const path = await import('path')
     const seedPath = path.join(process.cwd(), 'prisma', 'seed.js')

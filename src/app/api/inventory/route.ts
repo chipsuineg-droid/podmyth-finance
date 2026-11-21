@@ -21,8 +21,11 @@ export async function GET(req: Request) {
 
   const variants = await prisma.variant.findMany({
     where: {
-      ...(lowStock ? { stockQty: { lte: 2 }, product: { isService: false } } : {}),
-      ...(categoryId ? { product: { categoryId } } : {}),
+      product: {
+        isService: false,
+        ...(categoryId ? { categoryId } : {}),
+      },
+      ...(lowStock ? { stockQty: { lte: 2 } } : {}),
     },
     include: { product: { include: { category: true } } },
     orderBy: [{ product: { name: 'asc' } }, { color: 'asc' }, { size: 'asc' }],
