@@ -55,51 +55,47 @@ async function main() {
     const prodTancCore = await createProduct('tanc-core', 'TANC Core Scrub Set', catApparel.id, 30);
     const prodTancLite = await createProduct('tanc-lite', 'TANC Lite Scrub Set', catApparel.id, 35);
     const prodUnderScrubs = await createProduct('underscrub', 'UnderScrubs (Male / Female)', catApparel.id, 20);
-    const prodScrubLabs = await createProduct('scrub-labs', 'Scrub Labs Scrub Set', catApparel.id, 20);
-    const prodEFScrub = await createProduct('ef-scrub', 'EF Scrub Top', catApparel.id, 20);
-    const prodLabCoat = await createProduct('tanc-labcoat', "TANC Dr's LabCoat", catOuterwear.id, 20);
+    const prodEFScrub = await createProduct('ef-scrub', 'Breast Cancer EF Top', catApparel.id, 20);
     const prodDrsJacketLS = await createProduct('drs-jacket-ls', "Dr's Jacket (Long Sleeve)", catOuterwear.id, 18);
     const prodDrsJacketSS = await createProduct('drs-jacket-ss', "Dr's Jacket (Short Sleeve)", catOuterwear.id, 18);
     const prodSoftshellMen = await createProduct('softshell-men', 'Male Softshell Jacket', catOuterwear.id, 35);
-    const prodSoftshellWomen = await createProduct('softshell-women', 'Female Softshell Jacket', catOuterwear.id, 35);
-    const prodFlasks = await createProduct('podmyth-flasks', 'PodMYTH Black Thermos Flasks', catGear.id, 8);
-    const prodPenTorch = await createProduct('pen-torch', 'Medical Pen Torch', catGear.id, 5);
-    const prodLittmann = await createProduct('littmann-iii', 'Littmann Classic III Plum Stethoscope', catGear.id, 120);
-    const prodBCTshirt = await createProduct('bc-campaign', 'Breast Cancer T-Shirt & Cap', catApparel.id, 10);
     const prodEmbroidery = await createProduct('embroidery', 'Custom Chest & Name Embroidery', catServices.id, 3, true);
     const prodNameTags = await createProduct('name-tags', 'Hospital Name Tags (Set of 3)', catServices.id, 3, true);
     const prodCourier = await createProduct('courier-delivery', 'Courier Delivery (Outside Harare)', catServices.id, 5, true);
     const prodHarareDel = await createProduct('harare-delivery', 'Harare CBD Delivery', catServices.id, 0, true);
-    // ── Retail Shop Stock Control Sheet Inventory ($655.00 available stock) ───
+    // ── Real Physical Shop Stock Take Inventory ($455.00 available stock) ───
     const shopStock = [
-        { p: prodUnderScrubs, c: 'Navy Blue', s: 'M', buy: 12, sell: 20, qty: 1 },
-        { p: prodEFScrub, c: 'Standard', s: 'M', buy: 12, sell: 20, qty: 1 },
-        { p: prodTancLite, c: 'Petrol', s: 'M', buy: 22, sell: 35, qty: 1 },
-        { p: prodTancCore, c: 'Charcoal Grey', s: 'XL', buy: 19, sell: 30, qty: 1 },
-        { p: prodSoftshellMen, c: 'Black', s: 'M', buy: 22, sell: 35, qty: 1 },
-        { p: prodSoftshellWomen, c: 'Black', s: 'M', buy: 22, sell: 35, qty: 1 },
-        { p: prodTancLite, c: 'Black', s: 'S', buy: 22, sell: 35, qty: 1 },
+        // PODSCRUBS – Core (Buying: $18, Selling: $30)
+        { p: prodTancCore, c: 'Lilac', s: 'S', buy: 18, sell: 30, qty: 1 },
+        { p: prodTancCore, c: 'Black', s: 'L', buy: 18, sell: 30, qty: 2 },
+        { p: prodTancCore, c: 'Black', s: 'XL', buy: 18, sell: 30, qty: 1 },
+        { p: prodTancCore, c: 'Black', s: 'M', buy: 18, sell: 30, qty: 1 },
+        { p: prodTancCore, c: 'Navy Blue', s: 'M', buy: 18, sell: 30, qty: 1 },
+        { p: prodTancCore, c: 'Navy Blue', s: 'XL', buy: 18, sell: 30, qty: 1 },
+        { p: prodTancCore, c: 'Charcoal Grey', s: 'XL', buy: 18, sell: 30, qty: 1 },
+        { p: prodTancCore, c: 'Charcoal Grey', s: 'XS', buy: 18, sell: 30, qty: 2 },
+        // PODSCRUBS – Lite (Buying: $21, Selling: $35)
+        { p: prodTancLite, c: 'Black', s: 'M', buy: 21, sell: 35, qty: 3 },
+        { p: prodTancLite, c: 'Charcoal Grey', s: 'M', buy: 21, sell: 35, qty: 1 },
+        // MEN’S SoftShell Jacket (Buying: $28, Selling: $35)
+        { p: prodSoftshellMen, c: 'Navy Blue', s: 'M', buy: 28, sell: 35, qty: 1 },
+        { p: prodSoftshellMen, c: 'Black', s: 'S', buy: 28, sell: 35, qty: 1 },
+        { p: prodSoftshellMen, c: 'Black', s: 'M', buy: 28, sell: 35, qty: 1 },
+        { p: prodSoftshellMen, c: 'Black', s: 'L', buy: 28, sell: 35, qty: 1 },
+        // Dr’s Jackets (Buying: $13, Selling: $18)
+        { p: prodDrsJacketLS, c: 'White', s: 'L', buy: 13, sell: 18, qty: 1 },
+        { p: prodDrsJacketSS, c: 'White', s: 'L', buy: 13, sell: 18, qty: 1 },
+        { p: prodDrsJacketSS, c: 'White', s: 'M', buy: 13, sell: 18, qty: 1 },
+        // UnderScrubs (Buying: $12, Selling: $20)
         { p: prodUnderScrubs, c: 'Female Black', s: 'S', buy: 12, sell: 20, qty: 1 },
-        { p: prodTancLite, c: 'Black', s: 'M', buy: 22, sell: 35, qty: 3 },
-        { p: prodTancLite, c: 'Charcoal Grey', s: 'M', buy: 22, sell: 35, qty: 2 },
-        { p: prodSoftshellMen, c: 'Black', s: 'S', buy: 22, sell: 35, qty: 1 },
-        { p: prodDrsJacketLS, c: 'White', s: 'L', buy: 11, sell: 18, qty: 1 },
-        { p: prodTancCore, c: 'Navy Blue', s: 'M', buy: 19, sell: 30, qty: 2 },
-        { p: prodSoftshellMen, c: 'Navy Blue', s: 'M', buy: 22, sell: 35, qty: 1 },
-        { p: prodTancCore, c: 'Black', s: 'XL', buy: 19, sell: 30, qty: 1 },
-        { p: prodTancCore, c: 'Lilac', s: 'S', buy: 19, sell: 30, qty: 1 },
-        { p: prodTancCore, c: 'Navy Blue', s: 'XL', buy: 19, sell: 30, qty: 1 },
-        { p: prodTancCore, c: 'Black', s: 'L', buy: 19, sell: 30, qty: 3 },
-        { p: prodTancCore, c: 'Powder Blue', s: 'M', buy: 19, sell: 30, qty: 1 },
-        { p: prodLabCoat, c: 'White', s: 'L', buy: 13, sell: 20, qty: 1 },
-        { p: prodDrsJacketSS, c: 'White', s: 'M', buy: 11, sell: 18, qty: 1 },
-        { p: prodFlasks, c: 'Matte Black', s: 'Standard', buy: 4.5, sell: 8, qty: 2 },
-        { p: prodLittmann, c: 'Plum', s: 'Standard', buy: 85, sell: 120, qty: 1 },
+        // EF Tops (Buying: $14, Selling: $20)
+        { p: prodEFScrub, c: 'Breast Cancer Pink/Black', s: 'M', buy: 14, sell: 20, qty: 1 },
+        { p: prodEFScrub, c: 'Breast Cancer Pink/Black', s: 'XL', buy: 14, sell: 20, qty: 1 },
+        // Service SKUs
         { p: prodEmbroidery, c: 'N/A', s: 'N/A', buy: 1.5, sell: 3, qty: 999 },
         { p: prodNameTags, c: 'N/A', s: 'N/A', buy: 1, sell: 3, qty: 999 },
         { p: prodCourier, c: 'N/A', s: 'N/A', buy: 3.5, sell: 5, qty: 999 },
         { p: prodHarareDel, c: 'N/A', s: 'N/A', buy: 1.5, sell: 0, qty: 999 },
-        { p: prodPenTorch, c: 'Silver/Black', s: 'Standard', buy: 2.5, sell: 5, qty: 5 },
     ];
     for (const item of shopStock) {
         await createVariant(item.p.id, item.c, item.s, item.buy, item.sell, item.qty);

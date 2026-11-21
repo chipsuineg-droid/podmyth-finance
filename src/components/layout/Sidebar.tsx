@@ -25,7 +25,7 @@ const MAIN_NAV = [
     label: 'Inventory',
     icon: Package,
     children: [
-      { href: '/inventory', label: 'Stock Catalog ($655)' },
+      { href: '/inventory', label: 'Stock Catalog' },
       { href: '/inventory/receive', label: 'Receive Shipment' },
       { href: '/inventory/movements', label: 'Movement Audit' },
       { href: '/inventory/stocktake', label: 'Stock Take Mode' },

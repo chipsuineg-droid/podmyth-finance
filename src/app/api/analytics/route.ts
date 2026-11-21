@@ -80,7 +80,7 @@ export async function GET() {
     select: { stockQty: true, defaultBuyPrice: true }
   })
   const calculatedStock = physicalVariants.reduce((sum, v) => sum + v.stockQty * Number(v.defaultBuyPrice), 0)
-  const stockAvailable = physicalVariants.length > 0 ? calculatedStock : 655.00
+  const stockAvailable = physicalVariants.length > 0 ? calculatedStock : 455.00
 
   // Invoices pending payment
   const pendingInvoices = await prisma.document.findMany({
