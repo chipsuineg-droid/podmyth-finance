@@ -140,7 +140,7 @@ export function Sidebar() {
         })}
       </div>
 
-      {/* Down Below: Dedicated Audit Report Link */}
+      {/* Down Below: Dedicated Monthly Audit Reports Link */}
       <div className="px-3 py-3 border-t border-[#E5E5E5] bg-[#F8F9FA]">
         <Link
           href="/reconciliation"
@@ -153,9 +153,9 @@ export function Sidebar() {
         >
           <div className="flex items-center gap-2">
             <FileCheck2 size={14} className={isActive('/reconciliation') ? 'text-white' : 'text-[#C62828]'} />
-            <span>Audit Report</span>
+            <span>Monthly Audits</span>
           </div>
-          <span className="text-[10px] font-black tabular-nums">OCT '26</span>
+          <span className="text-[9px] font-black uppercase tracking-wider bg-red-100 text-[#C62828] px-1.5 py-0.5">REPORTS</span>
         </Link>
       </div>
 

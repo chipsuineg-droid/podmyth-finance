@@ -72,11 +72,48 @@ export async function GET() {
     .sort((a, b) => b.unitsSold - a.unitsSold)
     .slice(0, 7)
 
-  // Reconciled financial metrics
-  const cashAvailable = 90.00
-  const pendingFunds = 295.00
-  const stockAvailable = 655.00
-  const totalRecordedAssets = 1040.00
+  // Dynamic reconciled financial metrics
+  const physicalVariants = await prisma.variant.findMany({
+    where: { product: { isService: false } },
+    select: { stockQty: true, defaultBuyPrice: true }
+  })
+  const stockAvailable = physicalVariants.reduce((sum, v) => sum + v.stockQty * Number(v.defaultBuyPrice), 0)
+
+  // Invoices pending payment
+  const pendingInvoices = await prisma.document.findMany({
+    where: { type: 'INVOICE', status: { in: ['DELIVERED_PENDING', 'PARTIAL'] } },
+    select: { totalSellPrice: true, amountPaid: true }
+  })
+  const invoicePending = pendingInvoices.reduce((sum, inv) => sum + (Number(inv.totalSellPrice) - Number(inv.amountPaid)), 0)
+
+  // Pending unbanked cash-in action points
+  const pendingCashInPoints = await prisma.actionPoint.findMany({
+    where: { category: { in: ['CASH_IN', 'WITHDRAWAL'] }, status: 'PENDING' },
+    select: { amount: true }
+  })
+  const cashInPending = pendingCashInPoints.reduce((sum, ap) => sum + Number(ap.amount ?? 0), 0)
+  const pendingFunds = invoicePending + cashInPending
+
+  // Reconciled base cash ($90.00) plus new payments minus new expenses
+  const cutoffDate = new Date('2026-10-31T23:59:59.999Z')
+  const baseCash = 90.00
+  const [newPayments, completedCashIns, newExpenses] = await Promise.all([
+    prisma.payment.aggregate({
+      where: { paidAt: { gt: cutoffDate } },
+      _sum: { amount: true }
+    }),
+    prisma.actionPoint.findMany({
+      where: { category: { in: ['CASH_IN', 'WITHDRAWAL'] }, status: 'COMPLETED' },
+      select: { amount: true }
+    }),
+    prisma.expense.aggregate({
+      where: { date: { gt: cutoffDate } },
+      _sum: { amount: true }
+    })
+  ])
+  const cashInReceived = completedCashIns.reduce((sum, ap) => sum + Number(ap.amount ?? 0), 0)
+  const cashAvailable = baseCash + Number(newPayments._sum.amount ?? 0) + cashInReceived - Number(newExpenses._sum.amount ?? 0)
+  const totalRecordedAssets = cashAvailable + pendingFunds + stockAvailable
 
   return ok({
     cashAvailable,

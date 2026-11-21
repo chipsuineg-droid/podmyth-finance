@@ -120,6 +120,32 @@ td.numeric,
 
 /* Print styles */
 @media print {
-  nav, aside, .no-print { display: none !important; }
-  body { background: white; }
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 12mm 10mm;
+  }
+  nav, aside, header, .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  .card, .stat-card {
+    border: 1px solid #111111 !important;
+    break-inside: avoid;
+  }
 }
