@@ -6,12 +6,26 @@ import { formatCurrency } from '@/lib/finance'
 import { toast } from '@/components/ui/Toaster'
 import {
   ArrowLeft, User, Phone, MapPin, DollarSign, TrendingUp,
-  Receipt, FileText, Clock, Plus
+  Receipt, FileText, Clock, Plus, Edit2, X
 } from 'lucide-react'
+
+interface EditForm {
+  name: string
+  phone: string
+  email: string
+  city: string
+  deliveryZone: string
+  notes: string
+}
 
 export default function ClientDetailPage({ params }: { params: { id: string } }) {
   const [client, setClient] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editForm, setEditForm] = useState<EditForm>({
+    name: '', phone: '', email: '', city: '', deliveryZone: '', notes: ''
+  })
+  const [saving, setSaving] = useState(false)
 
   const loadClient = useCallback(async () => {
     try {
@@ -30,6 +44,44 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   useEffect(() => {
     loadClient()
   }, [loadClient])
+
+  const openEditModal = () => {
+    if (!client) return
+    setEditForm({
+      name: client.name ?? '',
+      phone: client.phone ?? '',
+      email: client.email ?? '',
+      city: client.city ?? '',
+      deliveryZone: client.deliveryZone ?? '',
+      notes: client.notes ?? '',
+    })
+    setShowEditModal(true)
+  }
+
+  const handleSave = async () => {
+    if (!editForm.name.trim()) {
+      toast('Client name is required', 'error')
+      return
+    }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/clients/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        toast(json.error ?? 'Failed to update client', 'error')
+        return
+      }
+      toast('Client updated successfully')
+      setShowEditModal(false)
+      await loadClient()
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (loading) return <div className="p-8 text-center text-sm text-gray-400">Loading client profile...</div>
   if (!client) return <div className="p-8 text-center text-sm text-gray-500">Client profile not found.</div>
@@ -62,16 +114,24 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
           <div>
             <h1 className="text-2xl font-black text-[#111111]">{client.name}</h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              Client profile & transaction ledger
+              Client profile &amp; transaction ledger
             </p>
           </div>
         </div>
 
         <div className="flex gap-2">
-          <Link href={`/quotations/new`} className="btn-secondary text-xs">
+          <button
+            type="button"
+            onClick={openEditModal}
+            className="btn-secondary text-xs flex items-center gap-1.5"
+          >
+            <Edit2 size={12} />
+            Edit
+          </button>
+          <Link href={`/quotations/new?clientId=${client.id}`} className="btn-secondary text-xs">
             + New Quote
           </Link>
-          <Link href={`/invoices/new`} className="btn-primary text-xs">
+          <Link href={`/invoices/new?clientId=${client.id}`} className="btn-primary text-xs">
             + New Invoice
           </Link>
         </div>
@@ -221,6 +281,99 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
           </table>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white max-w-lg w-full border border-[#111111] p-6 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setShowEditModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#111111] transition-colors"
+            >
+              <X size={18} />
+            </button>
+            <h2 className="text-sm font-black uppercase tracking-wider text-[#111111] mb-5">Edit Client Profile</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="label">Name *</label>
+                <input
+                  className="input"
+                  value={editForm.name}
+                  onChange={e => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Client name"
+                />
+              </div>
+              <div>
+                <label className="label">Phone</label>
+                <input
+                  className="input"
+                  value={editForm.phone}
+                  onChange={e => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Phone number"
+                />
+              </div>
+              <div>
+                <label className="label">Email</label>
+                <input
+                  type="email"
+                  className="input"
+                  value={editForm.email}
+                  onChange={e => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Email address"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">City</label>
+                  <input
+                    className="input"
+                    value={editForm.city}
+                    onChange={e => setEditForm(prev => ({ ...prev, city: e.target.value }))}
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <label className="label">Delivery Zone</label>
+                  <input
+                    className="input"
+                    value={editForm.deliveryZone}
+                    onChange={e => setEditForm(prev => ({ ...prev, deliveryZone: e.target.value }))}
+                    placeholder="Zone"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="label">Notes</label>
+                <textarea
+                  className="input resize-none"
+                  rows={3}
+                  value={editForm.notes}
+                  onChange={e => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Internal notes..."
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="btn-primary flex-1"
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowEditModal(false)}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

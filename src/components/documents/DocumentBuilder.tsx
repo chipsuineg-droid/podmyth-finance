@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { formatCurrency, calcOrderTotals } from '@/lib/finance'
 import { toast } from '@/components/ui/Toaster'
 import { Plus, Trash2, AlertTriangle, TrendingUp, TrendingDown, Search, X } from 'lucide-react'
@@ -24,12 +25,22 @@ interface LineItem {
   sellingPrice: number
 }
 
+interface NewClientForm {
+  name: string
+  phone: string
+  email: string
+  city: string
+  deliveryZone: string
+  notes: string
+}
+
 function newItem(): LineItem {
   return { tempId: Math.random().toString(36).slice(2), variantId: null, description: '', notes: '', qty: 1, buyingPrice: 0, sellingPrice: 0 }
 }
 
 export function DocumentBuilder({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [clients, setClients] = useState<Client[]>([])
   const [clientId, setClientId] = useState('')
   const [issueDate, setIssueDate] = useState(format(new Date(), 'yyyy-MM-dd'))
@@ -41,9 +52,24 @@ export function DocumentBuilder({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
   const [variantResults, setVariantResults] = useState<Record<string, Variant[]>>({})
   const [showDropdown, setShowDropdown] = useState<Record<string, boolean>>({})
 
+  // New client modal state
+  const [showNewClientModal, setShowNewClientModal] = useState(false)
+  const [newClientForm, setNewClientForm] = useState<NewClientForm>({
+    name: '', phone: '', email: '', city: '', deliveryZone: '', notes: ''
+  })
+  const [savingNewClient, setSavingNewClient] = useState(false)
+
   useEffect(() => {
     fetch('/api/clients').then(r => r.json()).then(j => setClients(j.data ?? []))
   }, [])
+
+  // Pre-select client from URL param once clients are loaded
+  useEffect(() => {
+    const preselected = searchParams.get('clientId')
+    if (preselected && clients.some(c => c.id === preselected)) {
+      setClientId(preselected)
+    }
+  }, [clients, searchParams])
 
   const searchVariants = useCallback(async (tempId: string, q: string) => {
     if (!q || q.length < 2) { setVariantResults(prev => ({ ...prev, [tempId]: [] })); return }
@@ -111,6 +137,34 @@ export function DocumentBuilder({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
     }
   }
 
+  const handleCreateClient = async () => {
+    if (!newClientForm.name.trim()) {
+      toast('Client name is required', 'error')
+      return
+    }
+    setSavingNewClient(true)
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newClientForm),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        toast(json.error ?? 'Failed to create client', 'error')
+        return
+      }
+      const created: Client = json.data
+      setClients(prev => [...prev, created])
+      setClientId(created.id)
+      setShowNewClientModal(false)
+      setNewClientForm({ name: '', phone: '', email: '', city: '', deliveryZone: '', notes: '' })
+      toast('Client created and selected')
+    } finally {
+      setSavingNewClient(false)
+    }
+  }
+
   const label = type === 'INVOICE' ? 'Invoice' : 'Quotation'
 
   return (
@@ -133,6 +187,16 @@ export function DocumentBuilder({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
                   <option value="">Select client...</option>
                   {clients.map(c => <option key={c.id} value={c.id}>{c.name}{c.city ? ` — ${c.city}` : ''}</option>)}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewClientForm({ name: '', phone: '', email: '', city: '', deliveryZone: '', notes: '' })
+                    setShowNewClientModal(true)
+                  }}
+                  className="mt-1.5 text-xs text-[#C62828] hover:underline font-semibold"
+                >
+                  + Add new client
+                </button>
               </div>
               <div>
                 <label className="label">Issue Date</label>
@@ -318,6 +382,99 @@ export function DocumentBuilder({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
           <p className="text-xs text-gray-400 text-center">Internal buying prices are never shown on client PDFs.</p>
         </div>
       </div>
+
+      {/* New Client Modal */}
+      {showNewClientModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white max-w-lg w-full border border-[#111111] p-6 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setShowNewClientModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-[#111111] transition-colors"
+            >
+              <X size={18} />
+            </button>
+            <h2 className="text-sm font-black uppercase tracking-wider text-[#111111] mb-5">Add New Client</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="label">Name *</label>
+                <input
+                  className="input"
+                  value={newClientForm.name}
+                  onChange={e => setNewClientForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Client name"
+                />
+              </div>
+              <div>
+                <label className="label">Phone</label>
+                <input
+                  className="input"
+                  value={newClientForm.phone}
+                  onChange={e => setNewClientForm(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Phone number"
+                />
+              </div>
+              <div>
+                <label className="label">Email</label>
+                <input
+                  type="email"
+                  className="input"
+                  value={newClientForm.email}
+                  onChange={e => setNewClientForm(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Email address"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">City</label>
+                  <input
+                    className="input"
+                    value={newClientForm.city}
+                    onChange={e => setNewClientForm(prev => ({ ...prev, city: e.target.value }))}
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <label className="label">Delivery Zone</label>
+                  <input
+                    className="input"
+                    value={newClientForm.deliveryZone}
+                    onChange={e => setNewClientForm(prev => ({ ...prev, deliveryZone: e.target.value }))}
+                    placeholder="Zone"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="label">Notes</label>
+                <textarea
+                  className="input resize-none"
+                  rows={3}
+                  value={newClientForm.notes}
+                  onChange={e => setNewClientForm(prev => ({ ...prev, notes: e.target.value }))}
+                  placeholder="Internal notes..."
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                type="button"
+                onClick={handleCreateClient}
+                disabled={savingNewClient}
+                className="btn-primary flex-1"
+              >
+                {savingNewClient ? 'Creating...' : 'Create Client'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNewClientModal(false)}
+                className="btn-secondary flex-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
