@@ -48,7 +48,7 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
   const [items, setItems] = useState<LineItem[]>([newItem()])
   const [saving, setSaving] = useState(false)
   const [allowBackorder, setAllowBackorder] = useState(false)
-  const [isPaid, setIsPaid] = useState(false)
+  const [isPaid, setIsPaid] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState<'USD_CASH' | 'ECOCASH' | 'INNBUCKS' | 'BANK_NOSTRO'>('USD_CASH')
   const [amountPaidInput, setAmountPaidInput] = useState('')
   const [variantSearch, setVariantSearch] = useState<Record<string, string>>({})

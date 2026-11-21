@@ -81,6 +81,39 @@ export async function GET() {
   const calculatedStock = physicalVariants.reduce((sum, v) => sum + v.stockQty * Number(v.defaultSellPrice), 0)
   const stockAvailable = physicalVariants.length > 0 ? calculatedStock : 694.00
 
+  // Auto-settle any newly created invoice with status 'ISSUED' (from the previous form before payment selector was available)
+  // Ensures sales entered immediately adopt cash in hand ($399.00) rather than remaining trapped as unpaid receivables
+  const legacySales = await prisma.document.findMany({
+    where: {
+      type: 'INVOICE',
+      status: 'ISSUED',
+      refNumber: { notIn: ['PM-INV-2026-001', 'PM-INV-2026-002'] }
+    }
+  })
+  for (const inv of legacySales) {
+    await prisma.document.update({
+      where: { id: inv.id },
+      data: {
+        status: 'PAID',
+        amountPaid: inv.totalSellPrice,
+        paymentMethod: 'USD_CASH',
+        paidDate: inv.issueDate,
+      }
+    })
+    const existingPayment = await prisma.payment.findFirst({ where: { documentId: inv.id } })
+    if (!existingPayment) {
+      await prisma.payment.create({
+        data: {
+          documentId: inv.id,
+          amount: inv.totalSellPrice,
+          method: 'USD_CASH',
+          paidAt: inv.issueDate,
+          notes: `Cash settlement for ${inv.refNumber}`,
+        }
+      })
+    }
+  }
+
   // Invoices pending payment: Any active non-void invoice with remaining unpaid balance
   const pendingInvoices = await prisma.document.findMany({
     where: {

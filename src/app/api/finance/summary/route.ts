@@ -9,6 +9,38 @@ export async function GET(req: Request) {
   const to = searchParams.get('to') ? new Date(searchParams.get('to')!) : undefined
   const dateFilter = from || to ? { gte: from, lte: to } : undefined
 
+  // Auto-settle any newly issued invoice created before payment selector was available
+  const legacySales = await prisma.document.findMany({
+    where: {
+      type: 'INVOICE',
+      status: 'ISSUED',
+      refNumber: { notIn: ['PM-INV-2026-001', 'PM-INV-2026-002'] }
+    }
+  })
+  for (const inv of legacySales) {
+    await prisma.document.update({
+      where: { id: inv.id },
+      data: {
+        status: 'PAID',
+        amountPaid: inv.totalSellPrice,
+        paymentMethod: 'USD_CASH',
+        paidDate: inv.issueDate,
+      }
+    })
+    const existingPayment = await prisma.payment.findFirst({ where: { documentId: inv.id } })
+    if (!existingPayment) {
+      await prisma.payment.create({
+        data: {
+          documentId: inv.id,
+          amount: inv.totalSellPrice,
+          method: 'USD_CASH',
+          paidAt: inv.issueDate,
+          notes: `Cash settlement for ${inv.refNumber}`,
+        }
+      })
+    }
+  }
+
   const [invoiceAgg, paymentAgg, expenseAgg, paymentsByMethod] = await Promise.all([
     prisma.document.aggregate({
       where: { type: 'INVOICE', status: { not: 'VOID' }, ...(dateFilter ? { issueDate: dateFilter } : {}) },
