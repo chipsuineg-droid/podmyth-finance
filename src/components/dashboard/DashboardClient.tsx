@@ -94,10 +94,10 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
       })
   }, [])
 
-  const cashAvailable = analytics?.cashAvailable ?? 90.00
-  const pendingFunds = analytics?.pendingFunds ?? 295.00
-  const stockAvailable = analytics?.stockAvailable ?? 655.00
-  const totalAssets = analytics?.totalRecordedAssets ?? 1040.00
+  const cashAvailable = analytics?.cashAvailable ?? 384.00
+  const pendingFunds = analytics?.pendingFunds ?? 32.00
+  const stockAvailable = analytics?.stockAvailable ?? 694.00
+  const totalAssets = analytics?.totalRecordedAssets ?? 1110.00
 
   const dailySales = analytics?.dailySales ?? []
   const maxDayRevenue = Math.max(...dailySales.map(d => d.revenue), 1)
@@ -139,7 +139,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
               </p>
             </div>
             <p className="text-xs text-gray-300 mt-1">
-              Click below to populate the 40 authenticated customer orders, physical stock catalog ($655.00), action points, and client ledger.
+              Click below to populate the 41 authenticated customer orders, physical stock catalog ($694.00 at selling price), action points, and client ledger.
             </p>
           </div>
           <button
@@ -166,7 +166,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
             {formatCurrency(cashAvailable)}
           </p>
           <p className="text-[11px] text-gray-500 mt-2 font-medium">
-            $401 cash in less $311 outflows
+            Physical cash in hand
           </p>
         </div>
 
@@ -182,7 +182,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
             {formatCurrency(pendingFunds)}
           </p>
           <p className="text-[11px] text-gray-500 mt-2 font-medium">
-            Dr Karie, Kuziva, St John, Reps, EcoCash
+            St John ($30) &amp; Dr. Tawo ($2)
           </p>
         </div>
 
@@ -214,7 +214,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
             {formatCurrency(totalAssets)}
           </p>
           <p className="text-[11px] text-gray-500 mt-2 font-medium">
-            Cash ($90) + Pending ($295) + Stock ($655)
+            Cash ($384) + Pending ($32) + Stock ($694)
           </p>
         </div>
       </div>

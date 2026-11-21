@@ -163,7 +163,7 @@ export function Sidebar() {
       <div className="px-5 py-3 border-t border-[#E5E5E5] bg-white">
         <div className="flex items-center justify-between text-[11px] text-gray-600">
           <span className="font-semibold text-gray-500 uppercase tracking-wider text-[10px]">Total Assets</span>
-          <span className="font-mono font-bold text-[#111111] tabular-nums">$1,040.00</span>
+          <span className="font-mono font-bold text-[#111111] tabular-nums">$1,110.00</span>
         </div>
       </div>
     </nav>

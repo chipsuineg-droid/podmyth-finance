@@ -226,61 +226,61 @@ async function main() {
   }
 
   // ── Authentic Sales from the PODMERCH Spreadsheet Ledger ───────────────────
-  // 1. Dr Karie ($135.00 pending)
+  // 1. Dr Karie (PAID - Settled into Cash in Hand)
   await createSale({
     refNumber: 'PM-INV-2026-001',
     clientId: 'c-dr-karie',
     date: '2026-10-01',
-    status: 'DELIVERED_PENDING',
-    amountPaid: 0,
-    notes: 'Outstanding payment $135.00',
+    status: 'PAID',
+    amountPaid: 155,
+    notes: 'Paid in full - collected into physical cash',
     items: [
-      { desc: 'TANC Core Scrub Set – Maroon / M', qty: 1, buy: 19, sell: 30 },
-      { desc: 'TANC Core Scrub Set – Black / M', qty: 1, buy: 19, sell: 30 },
-      { desc: 'TANC Core Scrub Set – Charcoal Grey / M', qty: 1, buy: 19, sell: 30 },
-      { desc: 'Female Softshell Jacket – Navy Blue / M', qty: 1, buy: 22, sell: 35 },
+      { desc: 'TANC Core Scrub Set – Maroon / M', qty: 1, buy: 18, sell: 30 },
+      { desc: 'TANC Core Scrub Set – Black / M', qty: 1, buy: 18, sell: 30 },
+      { desc: 'TANC Core Scrub Set – Charcoal Grey / M', qty: 1, buy: 18, sell: 30 },
+      { desc: 'Female Softshell Jacket – Navy Blue / M', qty: 1, buy: 28, sell: 35 },
       { desc: 'Custom Chest & Name Embroidery', qty: 3, buy: 0, sell: 10, notes: 'Dr. Karie' },
     ]
   })
 
-  // 2. Kuziva Zvokuomba ($45.00 pending: $10 advance paid)
+  // 2. Kuziva Zvokuomba (PAID - Settled into Cash in Hand)
   await createSale({
     refNumber: 'PM-INV-2026-002',
     clientId: 'c-kuziva',
     date: '2026-10-08',
-    status: 'DELIVERED_PENDING',
-    amountPaid: 10,
-    notes: 'Outstanding payment $45.00 ($25 Softshell + $20 Labcoat balance)',
+    status: 'PAID',
+    amountPaid: 55,
+    notes: 'Paid in full - collected into physical cash',
     items: [
-      { desc: 'Male Softshell Jacket – Charcoal Grey / M', qty: 1, buy: 22, sell: 35, notes: '$10 advance paid, $25 balance due' },
-      { desc: "TANC Dr's LabCoat – White / M", qty: 1, buy: 13, sell: 20, notes: '$20 balance due upon delivery' },
+      { desc: 'Male Softshell Jacket – Charcoal Grey / M', qty: 1, buy: 28, sell: 35 },
+      { desc: "TANC Dr's LabCoat – White / M", qty: 1, buy: 13, sell: 20 },
     ]
   })
 
-  // 3. St John Ambulance ($30.00 pending: $30 paid for Petrol, $30 pending for Charcoal)
+  // 3. St John Ambulance (Owing $30.00: $30 paid for Petrol, $30 pending for Charcoal)
   await createSale({
     refNumber: 'PM-INV-2026-003',
     clientId: 'c-st-john',
     date: '2026-09-11',
     status: 'DELIVERED_PENDING',
     amountPaid: 30,
-    notes: 'Outstanding payment $30.00 (Charcoal XS balance)',
+    notes: 'St John is owing $30.00 (Charcoal XS balance)',
     items: [
-      { desc: 'TANC Core Scrub Set – Petrol / XS', qty: 1, buy: 19, sell: 30 },
-      { desc: 'TANC Core Scrub Set – Charcoal / XS', qty: 1, buy: 19, sell: 30 },
+      { desc: 'TANC Core Scrub Set – Petrol / XS', qty: 1, buy: 18, sell: 30 },
+      { desc: 'TANC Core Scrub Set – Charcoal / XS', qty: 1, buy: 18, sell: 30 },
     ]
   })
 
-  // 4. Dr. Tawo ($2.00 pending: $20 paid, $2 balance)
+  // 4. Dr. Tawo (Owing $2.00: $20 paid, $2 balance)
   await createSale({
     refNumber: 'PM-INV-2026-004',
     clientId: 'c-dr-tawo',
     date: '2026-10-06',
     status: 'PARTIAL',
     amountPaid: 20,
-    notes: 'Outstanding payment $2.00',
+    notes: 'Tawo is owing $2.00',
     items: [
-      { desc: 'TANC Core Scrub Set – Navy Blue / L', qty: 1, buy: 19, sell: 20 },
+      { desc: 'TANC Core Scrub Set – Navy Blue / L', qty: 1, buy: 18, sell: 20 },
       { desc: 'Custom Chest Embroidery', qty: 1, buy: 1, sell: 2, notes: 'Dr. Tawo' },
     ]
   })
@@ -735,14 +735,14 @@ async function main() {
 
   // ── Action Points for /reconciliation ─────────────────────────────────────
   const actionPoints = [
-    { title: 'Collect outstanding balance from Dr Karie', amount: d(135), category: 'COLLECT_CLIENT', person: 'Dr. Karie', status: 'PENDING', notes: '3x scrubs + jacket pending balance' },
-    { title: 'Collect outstanding balance from Kuziva', amount: d(45), category: 'COLLECT_CLIENT', person: 'Kuziva Zvokuomba', status: 'PENDING', notes: 'Softshell ($25) + Labcoat ($20)' },
-    { title: 'Collect outstanding payment from St John', amount: d(30), category: 'COLLECT_CLIENT', person: 'St John Ambulance', status: 'PENDING', notes: 'TANC Core Charcoal XS' },
-    { title: 'Collect outstanding cash-in from Shawn', amount: d(25), category: 'CASH_IN', person: 'Shawn', status: 'PENDING', notes: 'Cash held by Shawn awaiting bank-in' },
-    { title: 'Collect / cash-in outstanding funds from Genius', amount: d(10), category: 'CASH_IN', person: 'Genius Chipfupa', status: 'PENDING', notes: 'Cash held by Genius awaiting hand-over' },
-    { title: 'Collect outstanding payment from Dr Tawo', amount: d(2), category: 'COLLECT_CLIENT', person: 'Dr. Tawo', status: 'PENDING', notes: 'Remaining balance on embroidered scrub set' },
-    { title: 'Withdraw and cash in EcoCash funds', amount: d(48), category: 'WITHDRAWAL', person: 'EcoCash Merchant / Agent', status: 'PENDING', notes: 'Funds in EcoCash wallet awaiting cash-out into physical USD' },
-    { title: 'Update physical stock records as items are sold', amount: d(0), category: 'OPERATIONAL', person: 'PodMyth Team', status: 'PENDING', notes: 'Synchronize retail shop stock control sheets' },
+    { title: 'Collect outstanding balance from Dr Karie', amount: d(135), category: 'COLLECT_CLIENT', person: 'Dr. Karie', status: 'COMPLETED', notes: 'Collected and settled into physical cash' },
+    { title: 'Collect outstanding balance from Kuziva', amount: d(45), category: 'COLLECT_CLIENT', person: 'Kuziva Zvokuomba', status: 'COMPLETED', notes: 'Collected and settled into physical cash' },
+    { title: 'Collect outstanding payment from St John', amount: d(30), category: 'COLLECT_CLIENT', person: 'St John Ambulance', status: 'PENDING', notes: 'St John is owing $30.00' },
+    { title: 'Collect outstanding cash-in from Shawn', amount: d(25), category: 'CASH_IN', person: 'Shawn', status: 'COMPLETED', notes: 'Cash held by Shawn banked into cash in hand' },
+    { title: 'Collect / cash-in outstanding funds from Genius', amount: d(10), category: 'CASH_IN', person: 'Genius Chipfupa', status: 'COMPLETED', notes: 'Cash held by Genius banked into cash in hand' },
+    { title: 'Collect outstanding payment from Dr Tawo', amount: d(2), category: 'COLLECT_CLIENT', person: 'Dr. Tawo', status: 'PENDING', notes: 'Tawo is owing $2.00' },
+    { title: 'Withdraw and cash in EcoCash funds', amount: d(48), category: 'WITHDRAWAL', person: 'EcoCash Merchant / Agent', status: 'COMPLETED', notes: 'Withdrawn and cashed into physical USD in hand' },
+    { title: 'Update physical stock records as items are sold', amount: d(0), category: 'OPERATIONAL', person: 'PodMyth Team', status: 'COMPLETED', notes: 'Real stock take reconciled ($694 selling valuation)' },
   ]
   for (const ap of actionPoints) {
     await prisma.actionPoint.create({ data: ap })

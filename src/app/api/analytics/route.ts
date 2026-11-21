@@ -97,27 +97,23 @@ export async function GET() {
   const cashInPending = pendingCashInPoints.reduce((sum, ap) => sum + Number(ap.amount ?? 0), 0)
   const pendingFunds = (invoicePending > 0 || cashInPending > 0)
     ? (invoicePending + cashInPending)
-    : (documents.length === 0 ? 295.00 : 0)
+    : (documents.length === 0 ? 32.00 : 0)
 
-  // Reconciled base cash ($90.00) plus new payments minus new expenses
+  // Reconciled cash in hand ($384.00 as of end of October 2026, fully baked baseline)
+  // Only add genuinely new payments and subtract genuinely new expenses after the cutoff
   const cutoffDate = new Date('2026-10-31T23:59:59.999Z')
-  const baseCash = 90.00
-  const [newPayments, completedCashIns, newExpenses] = await Promise.all([
+  const baseCash = 384.00
+  const [newPayments, newExpenses] = await Promise.all([
     prisma.payment.aggregate({
       where: { paidAt: { gt: cutoffDate } },
       _sum: { amount: true }
-    }),
-    prisma.actionPoint.findMany({
-      where: { category: { in: ['CASH_IN', 'WITHDRAWAL'] }, status: 'COMPLETED' },
-      select: { amount: true }
     }),
     prisma.expense.aggregate({
       where: { date: { gt: cutoffDate } },
       _sum: { amount: true }
     })
   ])
-  const cashInReceived = completedCashIns.reduce((sum, ap) => sum + Number(ap.amount ?? 0), 0)
-  const cashAvailable = baseCash + Number(newPayments._sum.amount ?? 0) + cashInReceived - Number(newExpenses._sum.amount ?? 0)
+  const cashAvailable = baseCash + Number(newPayments._sum.amount ?? 0) - Number(newExpenses._sum.amount ?? 0)
   const totalRecordedAssets = cashAvailable + pendingFunds + stockAvailable
 
   return ok({

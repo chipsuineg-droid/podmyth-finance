@@ -123,29 +123,37 @@ export async function GET(req: Request) {
   // OFFICIAL OCTOBER 2026 AUDIT SPECIFIC MAPPING
   // ───────────────────────────────────────────────────────────────────────────
   if (isOfficialOctober) {
-    const stockInventoryValue = 655.00
+    const stockInventoryValue = 694.00
     const initialCashInHand = 329.00
     const geniusPayments = 67.00
     const penTorchSale = 5.00
-    const totalCashReceived = 401.00 // 329 + 67 + 5
+    const shawnCashIn = 25.00
+    const ecoCashWithdrawal = 48.00
+    const drKarieSettlement = 155.00
+    const kuzivaSettlement = 55.00
+    const totalCashReceived = initialCashInHand + geniusPayments + penTorchSale + shawnCashIn + ecoCashWithdrawal + drKarieSettlement + kuzivaSettlement
 
     const wcnRepayment = 220.00
     const shawnFuel = 30.00
     const merchantLinePayment = 50.00
     const domainPayment = 11.00
-    const totalCashOutflows = 311.00
+    const totalCashOutflows = wcnRepayment + shawnFuel + merchantLinePayment + domainPayment
 
-    const actualCashPosition = 90.00 // 401 - 311
-    const totalPendingFunds = 295.00
-    const totalRecordedAssets = 1040.00
+    const actualCashPosition = 384.00  // Physical cash in hand (fully reconciled)
+    const totalPendingFunds = 32.00    // St John ($30) + Dr. Tawo ($2)
+    const totalRecordedAssets = 1110.00 // $384 + $32 + $694
 
     const officialInflowItems = [
-      { source: 'Initial cash in hand', amount: 329.00, method: 'CASH B/FWD', date: '2026-10-01' },
+      { source: 'Initial cash in hand (b/fwd)', amount: 329.00, method: 'CASH B/FWD', date: '2026-10-01' },
       { source: 'Genius – Payment 1', amount: 23.00, method: 'USD CASH', date: '2026-10-05' },
       { source: 'Genius – Payment 2', amount: 13.00, method: 'USD CASH', date: '2026-10-09' },
       { source: 'Genius – Payment 3', amount: 20.00, method: 'USD CASH', date: '2026-10-14' },
       { source: 'Genius – Payment 4', amount: 11.00, method: 'USD CASH', date: '2026-10-18' },
       { source: 'Pen torch cash sale', amount: 5.00, method: 'USD CASH', date: '2026-10-19' },
+      { source: 'Shawn – Cash hand-over (collected)', amount: 25.00, method: 'USD CASH', date: '2026-10-20' },
+      { source: 'EcoCash withdrawal (cashed out)', amount: 48.00, method: 'USD CASH', date: '2026-10-22' },
+      { source: 'Dr. Karie – Full settlement', amount: 155.00, method: 'USD CASH', date: '2026-10-25' },
+      { source: 'Kuziva – Full settlement', amount: 55.00, method: 'USD CASH', date: '2026-10-28' },
     ]
 
     const officialOutflowItems = [
@@ -155,11 +163,7 @@ export async function GET(req: Request) {
       { description: 'Domain payment (podmyth.com renewal)', category: 'SOFTWARE', amount: 11.00, date: '2026-10-25' },
     ]
 
-    const officialUnbankedFunds = [
-      { description: 'Shawn – Outstanding cash-in', amount: 25.00, status: 'Pending bank-in' },
-      { description: 'Genius – Outstanding cash-in', amount: 10.00, status: 'Pending cash turn-in' },
-      { description: 'EcoCash funds (Internal merchant wallet)', amount: 48.00, status: 'Awaiting cash withdrawal' },
-    ]
+    const officialUnbankedFunds: { description: string; amount: number; status: string }[] = []
 
     return ok({
       month: requestedMonth,
