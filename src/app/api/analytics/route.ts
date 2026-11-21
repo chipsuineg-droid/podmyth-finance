@@ -34,7 +34,7 @@ export async function GET() {
     })
   ])
 
-  // Aggregate daily sales
+  // Aggregate daily sales strictly from active billed invoices
   const dailySalesMap: Record<string, { date: string; label: string; revenue: number; orders: number }> = {}
   documents.forEach(doc => {
     const dayKey = format(new Date(doc.issueDate), 'yyyy-MM-dd')
@@ -47,10 +47,9 @@ export async function GET() {
   })
   const dailySales = Object.values(dailySalesMap).sort((a, b) => a.date.localeCompare(b.date))
 
-  // Aggregate high-demand products
+  // Aggregate high-demand products strictly from physical items sold in active orders
   const productDemandMap: Record<string, { name: string; unitsSold: number; totalRevenue: number; profit: number }> = {}
   items.forEach(it => {
-    // Normalize description to base product category name
     let cleanName = it.description.split('–')[0].split('-')[0].trim()
     if (cleanName.includes('TANC Core')) cleanName = 'TANC Core Scrub Set'
     else if (cleanName.includes('TANC Lite')) cleanName = 'TANC Lite Scrub Set'
@@ -60,7 +59,7 @@ export async function GET() {
     else if (cleanName.includes('Flask')) cleanName = 'PodMYTH Black Thermos Flasks'
     else if (cleanName.includes('Jacket')) cleanName = "Dr's Medical Jacket"
     else if (cleanName.includes('Embroidery')) cleanName = 'Custom Embroidery'
-    else if (cleanName.includes('EF Scrub')) cleanName = 'EF Scrub Top'
+    else if (cleanName.includes('EF Scrub')) cleanName = 'Breast Cancer EF Top'
 
     if (!productDemandMap[cleanName]) {
       productDemandMap[cleanName] = { name: cleanName, unitsSold: 0, totalRevenue: 0, profit: 0 }
@@ -72,7 +71,7 @@ export async function GET() {
 
   const highDemandProducts = Object.values(productDemandMap)
     .sort((a, b) => b.unitsSold - a.unitsSold)
-    .slice(0, 7)
+    .slice(0, 6)
 
   // Dynamic reconciled financial metrics with authentic baseline fallbacks (evaluated at selling price)
   const physicalVariants = await prisma.variant.findMany({
@@ -82,10 +81,19 @@ export async function GET() {
   const calculatedStock = physicalVariants.reduce((sum, v) => sum + v.stockQty * Number(v.defaultSellPrice), 0)
   const stockAvailable = physicalVariants.length > 0 ? calculatedStock : 694.00
 
-  // Invoices pending payment
+  // Invoices pending payment: Any active non-void invoice with remaining unpaid balance
   const pendingInvoices = await prisma.document.findMany({
-    where: { type: 'INVOICE', status: { in: ['DELIVERED_PENDING', 'PARTIAL'] } },
-    select: { totalSellPrice: true, amountPaid: true }
+    where: {
+      type: 'INVOICE',
+      status: { notIn: ['PAID', 'VOID'] }
+    },
+    select: {
+      id: true,
+      refNumber: true,
+      totalSellPrice: true,
+      amountPaid: true,
+      client: { select: { name: true } }
+    }
   })
   const invoicePending = pendingInvoices.reduce((sum, inv) => sum + (Number(inv.totalSellPrice) - Number(inv.amountPaid)), 0)
 
@@ -95,17 +103,30 @@ export async function GET() {
     select: { amount: true }
   })
   const cashInPending = pendingCashInPoints.reduce((sum, ap) => sum + Number(ap.amount ?? 0), 0)
-  const pendingFunds = (invoicePending > 0 || cashInPending > 0)
-    ? (invoicePending + cashInPending)
-    : (documents.length === 0 ? 32.00 : 0)
+  const pendingFunds = documents.length === 0 ? 32.00 : (invoicePending + cashInPending)
+
+  // Pending breakdown for client presentation
+  const pendingBreakdown = pendingInvoices
+    .filter(inv => Number(inv.totalSellPrice) > Number(inv.amountPaid))
+    .map(inv => ({
+      refNumber: inv.refNumber,
+      clientName: inv.client.name,
+      amountOwing: Number(inv.totalSellPrice) - Number(inv.amountPaid)
+    }))
 
   // Reconciled cash in hand ($384.00 baseline starting point)
-  // Future expenses logged will subtract from this $384 baseline; future payments will add to it
-  const cutoffDate = new Date('2026-11-21T00:00:00.000Z')
+  // Base starting cash is $384.00.
+  // Dr. Tawo's initial deposit ($20.00) was already accounted for in the $384.00 baseline.
+  // Any new payments received (new cash sales, invoice balance settlements) add directly to cash.
+  // Any operating expenses logged subtract from cash.
   const baseCash = 384.00
   const [newPayments, currentExpenses] = await Promise.all([
     prisma.payment.aggregate({
-      where: { paidAt: { gt: cutoffDate } },
+      where: {
+        NOT: {
+          notes: { contains: 'initial deposit' }
+        }
+      },
       _sum: { amount: true }
     }),
     prisma.expense.aggregate({
@@ -118,6 +139,7 @@ export async function GET() {
   return ok({
     cashAvailable,
     pendingFunds,
+    pendingBreakdown,
     stockAvailable,
     totalRecordedAssets,
     dailySales,

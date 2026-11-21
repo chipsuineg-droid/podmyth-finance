@@ -30,7 +30,7 @@ export async function GET(req: Request) {
   ])
 
   const ar = await prisma.document.aggregate({
-    where: { type: 'INVOICE', status: { in: ['DELIVERED_PENDING', 'PARTIAL'] }, ...(dateFilter ? { issueDate: dateFilter } : {}) },
+    where: { type: 'INVOICE', status: { notIn: ['PAID', 'VOID'] }, ...(dateFilter ? { issueDate: dateFilter } : {}) },
     _sum: { totalSellPrice: true, amountPaid: true },
   })
 
@@ -49,9 +49,12 @@ export async function GET(req: Request) {
   const arBalance = Number(ar._sum.totalSellPrice ?? 0) - Number(ar._sum.amountPaid ?? 0)
 
   // Reconciled cash starting from $384 baseline minus overhead expenses plus post-baseline payments
-  const cutoffDate = new Date('2026-11-21T00:00:00.000Z')
   const newPayments = await prisma.payment.aggregate({
-    where: { paidAt: { gt: cutoffDate } },
+    where: {
+      NOT: {
+        notes: { contains: 'initial deposit' }
+      }
+    },
     _sum: { amount: true }
   })
   const cashAvailable = 384.00 + Number(newPayments._sum.amount ?? 0) - totalExpenses

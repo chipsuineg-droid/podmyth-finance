@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import { formatCurrency, calcOrderTotals } from '@/lib/finance'
 import { toast } from '@/components/ui/Toaster'
-import { Plus, Trash2, AlertTriangle, TrendingUp, TrendingDown, Search, X } from 'lucide-react'
+import { Plus, Trash2, AlertTriangle, TrendingUp, TrendingDown, Search, X, CreditCard, CheckCircle } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Variant {
@@ -48,6 +48,9 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
   const [items, setItems] = useState<LineItem[]>([newItem()])
   const [saving, setSaving] = useState(false)
   const [allowBackorder, setAllowBackorder] = useState(false)
+  const [isPaid, setIsPaid] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'USD_CASH' | 'ECOCASH' | 'INNBUCKS' | 'BANK_NOSTRO'>('USD_CASH')
+  const [amountPaidInput, setAmountPaidInput] = useState('')
   const [variantSearch, setVariantSearch] = useState<Record<string, string>>({})
   const [variantResults, setVariantResults] = useState<Record<string, Variant[]>>({})
   const [showDropdown, setShowDropdown] = useState<Record<string, boolean>>({})
@@ -112,12 +115,18 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
 
     setSaving(true)
     try {
+      const parsedAmount = parseFloat(amountPaidInput)
+      const paidVal = isPaid ? (isNaN(parsedAmount) ? totals.totalSellPrice : parsedAmount) : 0
+
       const res = await fetch('/api/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type, clientId, issueDate, notes,
           allowBackorder,
+          isPaid: type === 'INVOICE' ? isPaid : false,
+          paymentMethod: type === 'INVOICE' && isPaid ? paymentMethod : undefined,
+          amountPaid: type === 'INVOICE' ? paidVal : 0,
           items: items.map(it => ({
             variantId: it.variantId || null,
             description: it.description,
@@ -354,6 +363,86 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
             <div className="text-3xl font-black tabular-nums text-[#111111]">{formatCurrency(totals.totalSellPrice)}</div>
             <p className="text-xs text-gray-500 mt-1">Amount shown on {label.toLowerCase()}</p>
           </div>
+
+          {/* Payment Status (Invoices Only) */}
+          {type === 'INVOICE' && (
+            <div className="card space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#111111] flex items-center gap-1.5">
+                  <CreditCard size={14} className="text-[#C62828]" />
+                  Settlement Standpoint
+                </h2>
+                <span className="text-[10px] font-mono text-gray-400">FINANCE</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsPaid(true)
+                    setAmountPaidInput(totals.totalSellPrice.toString())
+                  }}
+                  className={`py-2 px-3 text-xs font-bold border text-center transition-colors ${
+                    isPaid
+                      ? 'bg-[#111111] text-white border-[#111111]'
+                      : 'bg-white text-gray-700 border-[#E5E5E5] hover:bg-gray-50'
+                  }`}
+                >
+                  ✓ Paid Now (Cash)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsPaid(false)
+                    setAmountPaidInput('0')
+                  }}
+                  className={`py-2 px-3 text-xs font-bold border text-center transition-colors ${
+                    !isPaid
+                      ? 'bg-[#C62828] text-white border-[#C62828]'
+                      : 'bg-white text-gray-700 border-[#E5E5E5] hover:bg-gray-50'
+                  }`}
+                >
+                  ⏳ Pending / Credit
+                </button>
+              </div>
+
+              {isPaid ? (
+                <div className="space-y-2.5 pt-2 border-t border-[#E5E5E5]">
+                  <div>
+                    <label className="label">Deposit Method</label>
+                    <select
+                      className="select text-xs"
+                      value={paymentMethod}
+                      onChange={e => setPaymentMethod(e.target.value as any)}
+                    >
+                      <option value="USD_CASH">USD Cash (Liquid Physical Cash)</option>
+                      <option value="ECOCASH">EcoCash</option>
+                      <option value="INNBUCKS">InnBucks</option>
+                      <option value="BANK_NOSTRO">Bank Nostro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Amount Paid ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="input text-xs"
+                      placeholder={totals.totalSellPrice.toString()}
+                      value={amountPaidInput}
+                      onChange={e => setAmountPaidInput(e.target.value)}
+                    />
+                  </div>
+                  <p className="text-[11px] text-green-700 font-medium">
+                    Physical cash in hand will immediately update by {formatCurrency(parseFloat(amountPaidInput) || totals.totalSellPrice)}.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[11px] text-gray-500 pt-1 border-t border-[#E5E5E5]">
+                  Will be logged as Pending Receivables ({formatCurrency(totals.totalSellPrice)}) until settlement is collected.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Backorder Toggle (invoices only) */}
           {type === 'INVOICE' && (

@@ -22,6 +22,9 @@ const DocumentSchema = z.object({
   notes: z.string().optional(),
   items: z.array(ItemSchema).min(1),
   allowBackorder: z.boolean().optional(),
+  isPaid: z.boolean().optional(),
+  paymentMethod: z.enum(['USD_CASH', 'ECOCASH', 'INNBUCKS', 'BANK_NOSTRO']).optional(),
+  amountPaid: z.number().min(0).optional(),
 })
 
 export const dynamic = 'force-dynamic'
@@ -51,7 +54,7 @@ export async function POST(req: Request) {
   const parsed = DocumentSchema.safeParse(body)
   if (!parsed.success) return err(parsed.error.message)
 
-  const { type, clientId, issueDate, dueDate, notes, items, allowBackorder } = parsed.data
+  const { type, clientId, issueDate, dueDate, notes, items, allowBackorder, isPaid, paymentMethod, amountPaid } = parsed.data
 
   if (type === 'INVOICE') {
     for (const item of items) {
@@ -67,15 +70,30 @@ export async function POST(req: Request) {
   const refNumber = await getNextRefNumber(type)
   const totals = calcOrderTotals(items)
 
+  const paid = Number(amountPaid ?? (isPaid ? totals.totalSellPrice : 0))
+  let docStatus = type === 'INVOICE' ? 'DELIVERED_PENDING' : 'DRAFT'
+  if (type === 'INVOICE') {
+    if (paid >= totals.totalSellPrice && totals.totalSellPrice > 0) {
+      docStatus = 'PAID'
+    } else if (paid > 0) {
+      docStatus = 'PARTIAL'
+    } else {
+      docStatus = 'DELIVERED_PENDING'
+    }
+  }
+
   const doc = await prisma.$transaction(async (tx) => {
     const document = await tx.document.create({
       data: {
         refNumber,
         type,
-        status: type === 'INVOICE' ? 'ISSUED' : 'DRAFT',
+        status: docStatus,
         clientId,
         issueDate: new Date(issueDate),
         dueDate: dueDate ? new Date(dueDate) : undefined,
+        paidDate: docStatus === 'PAID' ? new Date(issueDate) : undefined,
+        paymentMethod: paid > 0 ? (paymentMethod ?? 'USD_CASH') : undefined,
+        amountPaid: new Decimal(paid),
         notes,
         totalSellPrice: new Decimal(totals.totalSellPrice),
         totalBuyPrice: new Decimal(totals.totalBuyPrice),
@@ -98,6 +116,18 @@ export async function POST(req: Request) {
       },
       include: { items: true, client: true }
     })
+
+    if (type === 'INVOICE' && paid > 0) {
+      await tx.payment.create({
+        data: {
+          documentId: document.id,
+          amount: new Decimal(paid),
+          method: paymentMethod ?? 'USD_CASH',
+          paidAt: new Date(issueDate),
+          notes: `Settlement for ${refNumber}`,
+        }
+      })
+    }
 
     if (type === 'INVOICE') {
       for (const item of items) {

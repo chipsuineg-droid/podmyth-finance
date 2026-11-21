@@ -35,7 +35,7 @@ export default async function DashboardPage() {
       _sum: { totalSellPrice: true, netProfit: true, amountPaid: true }
     }),
     prisma.document.aggregate({
-      where: { type: 'INVOICE', status: { in: ['DELIVERED_PENDING', 'PARTIAL'] } },
+      where: { type: 'INVOICE', status: { notIn: ['PAID', 'VOID'] } },
       _sum: { totalSellPrice: true, amountPaid: true }
     }),
     prisma.variant.findMany({

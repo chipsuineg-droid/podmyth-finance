@@ -58,6 +58,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
   const [analytics, setAnalytics] = useState<{
     cashAvailable: number
     pendingFunds: number
+    pendingBreakdown?: { refNumber: string; clientName: string; amountOwing: number }[]
     stockAvailable: number
     totalRecordedAssets: number
     dailySales: DailySalePoint[]
@@ -182,7 +183,9 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
             {formatCurrency(pendingFunds)}
           </p>
           <p className="text-[11px] text-gray-500 mt-2 font-medium">
-            St John ($30) &amp; Dr. Tawo ($2)
+            {analytics?.pendingBreakdown && analytics.pendingBreakdown.length > 0
+              ? analytics.pendingBreakdown.map(p => `${p.clientName.split(' ')[0]} (${formatCurrency(p.amountOwing)})`).join(' • ')
+              : 'St John ($30.00) • Dr. Tawo ($2.00)'}
           </p>
         </div>
 
@@ -214,7 +217,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
             {formatCurrency(totalAssets)}
           </p>
           <p className="text-[11px] text-gray-500 mt-2 font-medium">
-            Cash ($384) + Pending ($32) + Stock ($694)
+            Cash ({formatCurrency(cashAvailable)}) + Pending ({formatCurrency(pendingFunds)}) + Stock ({formatCurrency(stockAvailable)})
           </p>
         </div>
       </div>
@@ -226,10 +229,10 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
           <div className="flex items-center justify-between border-b border-[#E5E5E5] pb-3">
             <div>
               <h2 className="text-xs font-black uppercase tracking-wider text-[#111111]">
-                Sales Made Per Day (September – October 2026)
+                Sales Made Per Day
               </h2>
               <p className="text-[11px] text-gray-500 mt-0.5">
-                Daily billed order value from verified customer ledger
+                Daily billed order value from active customer invoices
               </p>
             </div>
             {hoveredDay && (
@@ -245,34 +248,41 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
           </div>
 
           {/* SVG Bar Chart */}
-          <div className="h-64 flex items-end gap-1.5 pt-6 pb-2 px-1 overflow-x-auto border-b border-[#E5E5E5]">
-            {dailySales.map(day => {
-              const heightPercent = Math.max(8, Math.round((day.revenue / maxDayRevenue) * 100))
-              const isHovered = hoveredDay?.date === day.date
+          {dailySales.length > 0 ? (
+            <div className="h-64 flex items-end gap-1.5 pt-6 pb-2 px-1 overflow-x-auto border-b border-[#E5E5E5]">
+              {dailySales.map(day => {
+                const heightPercent = Math.max(8, Math.round((day.revenue / maxDayRevenue) * 100))
+                const isHovered = hoveredDay?.date === day.date
 
-              return (
-                <div
-                  key={day.date}
-                  className="flex-1 min-w-[18px] flex flex-col items-center justify-end h-full group cursor-pointer"
-                  onMouseEnter={() => setHoveredDay(day)}
-                  onMouseLeave={() => setHoveredDay(null)}
-                >
+                return (
                   <div
-                    style={{ height: `${heightPercent}%` }}
-                    className={`w-full transition-all duration-150 ${
-                      isHovered ? 'bg-[#C62828]' : 'bg-[#111111] hover:bg-[#C62828]'
-                    }`}
-                  />
-                  <span className="text-[8px] font-mono text-gray-400 mt-1 truncate w-full text-center">
-                    {day.label.split(' ')[0]}
-                  </span>
-                </div>
-              )
-            })}
-          </div>
+                    key={day.date}
+                    className="flex-1 min-w-[18px] flex flex-col items-center justify-end h-full group cursor-pointer"
+                    onMouseEnter={() => setHoveredDay(day)}
+                    onMouseLeave={() => setHoveredDay(null)}
+                  >
+                    <div
+                      style={{ height: `${heightPercent}%` }}
+                      className={`w-full transition-all duration-150 ${
+                        isHovered ? 'bg-[#C62828]' : 'bg-[#111111] hover:bg-[#C62828]'
+                      }`}
+                    />
+                    <span className="text-[8px] font-mono text-gray-400 mt-1 truncate w-full text-center">
+                      {day.label.split(' ')[0]}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="h-64 flex flex-col items-center justify-center border-b border-[#E5E5E5] text-gray-400 text-xs text-center p-4">
+              <p className="font-semibold text-gray-600">No billed sales recorded yet.</p>
+              <p className="text-[11px] text-gray-400 mt-1">New customer sales will populate this daily timeline automatically.</p>
+            </div>
+          )}
 
           <div className="flex items-center justify-between text-[10px] text-gray-500 font-medium">
-            <span>Peak day: {dailySales.reduce((max, d) => d.revenue > max.revenue ? d : max, dailySales[0] || { label: '—', revenue: 0 }).label} ({formatCurrency(maxDayRevenue)})</span>
+            <span>Peak day: {dailySales.length > 0 ? dailySales.reduce((max, d) => d.revenue > max.revenue ? d : max, dailySales[0]).label : '—'} ({formatCurrency(maxDayRevenue > 1 ? maxDayRevenue : 0)})</span>
             <span className="font-mono text-gray-600">Total days recorded: {dailySales.length}</span>
           </div>
         </div>
@@ -291,35 +301,42 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
             <span className="text-[10px] font-bold uppercase text-gray-400">UNITS SOLD</span>
           </div>
 
-          <div className="space-y-3 pt-1">
-            {highDemand.map((prod, idx) => {
-              const widthPercent = Math.max(10, Math.round((prod.unitsSold / maxUnits) * 100))
+          {highDemand.length > 0 ? (
+            <div className="space-y-3 pt-1">
+              {highDemand.map((prod, idx) => {
+                const widthPercent = Math.max(10, Math.round((prod.unitsSold / maxUnits) * 100))
 
-              return (
-                <div key={prod.name} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-[#111111] flex items-center gap-1.5">
-                      <span className="text-gray-400 font-mono text-[10px]">{idx + 1}.</span>
-                      {prod.name}
-                    </span>
-                    <span className="font-black text-[#111111] tabular-nums">
-                      {prod.unitsSold} units <span className="text-gray-400 font-normal">({formatCurrency(prod.totalRevenue)})</span>
-                    </span>
-                  </div>
+                return (
+                  <div key={prod.name} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-[#111111] flex items-center gap-1.5">
+                        <span className="text-gray-400 font-mono text-[10px]">{idx + 1}.</span>
+                        {prod.name}
+                      </span>
+                      <span className="font-black text-[#111111] tabular-nums">
+                        {prod.unitsSold} units <span className="text-gray-400 font-normal">({formatCurrency(prod.totalRevenue)})</span>
+                      </span>
+                    </div>
 
-                  <div className="w-full bg-[#F8F9FA] border border-[#E5E5E5] h-2">
-                    <div
-                      style={{ width: `${widthPercent}%` }}
-                      className={`h-full ${idx === 0 ? 'bg-[#C62828]' : 'bg-[#111111]'}`}
-                    />
+                    <div className="w-full bg-[#F8F9FA] border border-[#E5E5E5] h-2">
+                      <div
+                        style={{ width: `${widthPercent}%` }}
+                        className={`h-full ${idx === 0 ? 'bg-[#C62828]' : 'bg-[#111111]'}`}
+                      />
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="py-16 flex flex-col items-center justify-center text-gray-400 text-xs text-center p-4">
+              <p className="font-semibold text-gray-600">No product sales logged yet.</p>
+              <p className="text-[11px] text-gray-400 mt-1">Products sold on new invoices will rank here automatically.</p>
+            </div>
+          )}
 
           <div className="pt-2 border-t border-[#E5E5E5] flex justify-between text-[10px] text-gray-500 font-medium">
-            <span>Primary Revenue Driver: <strong>TANC Core Scrub Sets</strong></span>
+            <span>Primary Revenue Driver: <strong>{highDemand[0]?.name ?? 'None logged yet'}</strong></span>
             <Link href="/inventory" className="text-[#C62828] font-bold hover:underline">
               Inspect Inventory Counts →
             </Link>
