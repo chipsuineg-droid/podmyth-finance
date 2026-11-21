@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.main = main;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 function d(val) {
@@ -698,6 +699,9 @@ async function main() {
     }
     console.log('Authentic PodMyth database seed completed successfully.');
 }
-main()
-    .catch(e => { console.error(e); process.exit(1); })
-    .finally(() => prisma.$disconnect());
+exports.main = main;
+if (require.main === module) {
+    main()
+        .catch(e => { console.error(e); process.exit(1); })
+        .finally(() => prisma.$disconnect());
+}

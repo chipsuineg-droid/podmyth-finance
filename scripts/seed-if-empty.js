@@ -1,23 +1,24 @@
 const { PrismaClient } = require('@prisma/client')
+const { execSync } = require('child_process')
+const path = require('path')
 
 async function main() {
   const prisma = new PrismaClient()
   try {
     const count = await prisma.product.count()
+    console.log(`[Seed Check] Current product count in database: ${count}`)
     if (count === 0) {
-      console.log('Database has no products. Running authentic seed...')
+      console.log('[Seed Check] Database is empty. Running authentic PodMyth seed...')
       await prisma.$disconnect()
-      // Execute the compiled seed.js
-      const { main: runSeed } = require('../prisma/seed.js')
-      if (typeof runSeed === 'function') {
-        await runSeed()
-      }
+      const seedScript = path.join(__dirname, '..', 'prisma', 'seed.js')
+      execSync(`node "${seedScript}"`, { stdio: 'inherit' })
+      console.log('[Seed Check] Seed script completed successfully.')
     } else {
-      console.log(`Database is already initialized (${count} products found). Skipping seed.`)
+      console.log(`[Seed Check] Database already has ${count} products. Skipping seed.`)
       await prisma.$disconnect()
     }
   } catch (err) {
-    console.log('Seed check completed:', err.message)
+    console.error('[Seed Check Error]:', err.message)
     try {
       await prisma.$disconnect()
     } catch {}
@@ -26,6 +27,7 @@ async function main() {
 
 main().then(() => {
   process.exit(0)
-}).catch(() => {
+}).catch((e) => {
+  console.error(e)
   process.exit(0)
 })

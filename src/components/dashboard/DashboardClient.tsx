@@ -65,6 +65,24 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
   } | null>(null)
 
   const [hoveredDay, setHoveredDay] = useState<DailySalePoint | null>(null)
+  const [isSeeding, setIsSeeding] = useState(false)
+
+  const handleSeed = async () => {
+    setIsSeeding(true)
+    try {
+      const res = await fetch('/api/seed?force=true')
+      const json = await res.json()
+      if (json.data?.seeded) {
+        window.location.reload()
+      } else {
+        window.location.reload()
+      }
+    } catch {
+      alert('Failed to initialize database')
+    } finally {
+      setIsSeeding(false)
+    }
+  }
 
   useEffect(() => {
     fetch('/api/analytics')
@@ -109,6 +127,30 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
           </Link>
         </div>
       </div>
+
+      {/* Uninitialized Database Alert Banner */}
+      {stats.totalInvoices === 0 && (
+        <div className="bg-[#111111] text-white p-5 flex flex-wrap items-center justify-between gap-4 border-l-4 border-l-[#C62828] shadow-sm">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#C62828] animate-ping" />
+              <p className="text-xs font-black uppercase tracking-wider text-white">
+                PostgreSQL Database Connected — Unpopulated State
+              </p>
+            </div>
+            <p className="text-xs text-gray-300 mt-1">
+              Click below to populate the 40 authenticated customer orders, physical stock catalog ($655.00), action points, and client ledger.
+            </p>
+          </div>
+          <button
+            onClick={handleSeed}
+            disabled={isSeeding}
+            className="btn-primary text-xs font-black uppercase tracking-wider py-2 px-5 bg-[#C62828] hover:bg-[#B71C1C] text-white cursor-pointer transition-transform active:scale-95"
+          >
+            {isSeeding ? 'Seeding Authentic Dataset...' : 'Populate Authentic PodMyth Data →'}
+          </button>
+        </div>
+      )}
 
       {/* ── TOP FOUR CORE METRICS (RECONCILED FIGURES) ───────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
