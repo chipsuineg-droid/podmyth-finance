@@ -507,135 +507,211 @@ export function DocumentDetail({ id }: { id: string }) {
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* CLIENT-FACING PRINT / PDF VIEW (Exact Brand Specs) */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      <div className={`bg-white border border-[#E5E5E5] p-8 lg:p-12 shadow-sm ${viewMode === 'internal' ? 'hidden' : 'block'} print:block print:border-0 print:p-0`}>
-        {/* Document Header */}
-        <div className="flex items-start justify-between pb-6">
+      <div className={`bg-white border border-[#E5E5E5] p-10 lg:p-12 shadow-sm ${viewMode === 'internal' ? 'hidden' : 'block'} print:block print:border-0 print:p-0`} style={{ fontFamily: "'Helvetica Neue', Inter, sans-serif" }}>
+
+        {/* SECTION 1 — Header */}
+        <div className="flex items-start justify-between">
+          {/* Left: Brand */}
           <div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#C62828] flex items-center justify-center">
-                <span className="text-white text-xs font-black">PM</span>
-              </div>
-              <h1 className="text-2xl font-black text-[#111111] tracking-wider uppercase">
-                PODMYTH
-              </h1>
+            <div className="text-[28px] font-black tracking-wider leading-none">
+              <span className="text-[#111111]">POD</span><span className="text-[#C62828]">MYTH</span><span className="text-[#111111]"> GROUP</span>
             </div>
-            <p className="text-[10px] font-bold text-[#C62828] tracking-widest uppercase mt-1">
-              MEDICAL APPAREL & DIAGNOSTIC GEAR
+            <p className="text-[10px] font-black tracking-[3px] text-[#C62828] uppercase mt-1">
+              PODMERCH SUBSIDIARY
             </p>
+            <div className="mt-3 space-y-0.5">
+              <p className="text-[10px] text-[#555555]">Call: +263 784 881 010</p>
+              <p className="text-[10px] text-[#555555]">Email: sales@podmyth.co.zw</p>
+              <p className="text-[10px] text-[#555555]">Web: www.podmyth.co.zw</p>
+            </div>
           </div>
 
+          {/* Right: Document metadata */}
           <div className="text-right">
-            <h2 className="text-2xl font-black text-[#C62828] tracking-tight uppercase">
-              {doc.type}
+            <h2 className="text-[22px] font-black text-[#111111] tracking-[4.5px] uppercase">
+              {isInvoice ? 'INVOICE' : 'QUOTATION'}
             </h2>
-            <div className="mt-2 text-xs space-y-1 text-gray-600">
-              <div><strong className="text-[#111111]">Ref #:</strong> <span className="font-mono font-bold text-[#111111]">{doc.refNumber}</span></div>
-              <div><strong className="text-[#111111]">Date:</strong> {format(new Date(doc.issueDate), 'd MMMM yyyy')}</div>
-              {doc.dueDate && (
-                <div><strong className="text-[#111111]">Due Date:</strong> {format(new Date(doc.dueDate), 'd MMMM yyyy')}</div>
-              )}
+            <div className="w-[38px] h-[2px] bg-[#C62828] ml-auto mt-1" />
+            <div className="mt-3 space-y-1">
+              <div className="text-[11px] text-[#555555]">
+                {isInvoice ? 'Invoice No.' : 'Quotation No.'}{' '}
+                <span className="font-mono font-bold text-[#111111]">{doc.refNumber}</span>
+              </div>
+              <div className="text-[11px] text-[#555555]">
+                Date: <span className="font-bold text-[#111111]">{format(new Date(doc.issueDate), 'd MMMM yyyy')}</span>
+              </div>
+              <div className="text-[11px] text-[#555555]">
+                {isInvoice ? 'Currency: USD ($)' : 'Valid For: 14 Days'}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* 3px PodMyth Crimson Red Divider */}
-        <div className="h-[3px] bg-[#C62828] w-full mb-6" />
+        {/* SECTION 2 — Hairline divider */}
+        <div className="h-px bg-[#E2E2E2] my-6" />
 
-        {/* Two-Column Cards: BILLED TO / ISSUED BY */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
-          <div className="card-surface border-l-4 border-l-[#111111] p-4">
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">BILLED TO</p>
-            <p className="text-sm font-black text-[#111111]">{doc.client.name}</p>
-            {doc.client.phone && <p className="text-xs text-gray-600 mt-1">{doc.client.phone}</p>}
-            {doc.client.city && (
-              <p className="text-xs text-gray-600">
-                {doc.client.city}{doc.client.deliveryZone ? ` (${doc.client.deliveryZone})` : ''}
-              </p>
-            )}
-          </div>
-
-          <div className="card-surface border-l-4 border-l-[#C62828] p-4 text-right">
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">ISSUED BY</p>
-            <p className="text-sm font-black text-[#111111]">PODMYTH</p>
-            <p className="text-xs text-gray-600 mt-1">Medical Apparel & Diagnostic Gear</p>
-            <p className="text-xs text-gray-600">Harare, Zimbabwe</p>
-            <p className="text-xs text-gray-600">sales@podmyth.com</p>
-          </div>
+        {/* SECTION 3 — Billed To / Prepared For */}
+        <div className="mb-6">
+          <p className="text-[10px] font-black text-[#C62828] tracking-[2px] uppercase mb-2">
+            {isInvoice ? 'BILLED TO' : 'PREPARED FOR'}
+          </p>
+          <p className="text-[14px] font-black text-[#111111]">{doc.client.name}</p>
+          {doc.client.phone && (
+            <p className="text-[11px] text-[#555555] mt-0.5">{doc.client.phone}</p>
+          )}
+          {doc.client.city && (
+            <p className="text-[11px] text-[#555555]">
+              {doc.client.city}{doc.client.deliveryZone ? `, ${doc.client.deliveryZone}` : ''}
+            </p>
+          )}
         </div>
 
-        {/* Client-Facing Line Items Table (Internal COGS strictly excluded!) */}
-        <table className="w-full mb-6 border-collapse">
+        {/* SECTION 4 — Line Items Table */}
+        <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
           <thead>
-            <tr>
-              <th className="bg-[#111111] text-white text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 text-left w-12">#</th>
-              <th className="bg-[#111111] text-white text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 text-left">Description</th>
-              <th className="bg-[#111111] text-white text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 text-center w-20">Qty</th>
-              <th className="bg-[#111111] text-white text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 text-right w-32">Unit Price</th>
-              <th className="bg-[#111111] text-white text-[11px] font-bold uppercase tracking-wider px-4 py-2.5 text-right w-36">Amount</th>
+            <tr style={{ borderTop: '1.5px solid #111111', borderBottom: '1.5px solid #111111' }}>
+              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-left" style={{ width: '40px', whiteSpace: 'nowrap' }}>#</th>
+              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 px-2 text-left" style={{ whiteSpace: 'nowrap' }}>DESCRIPTION</th>
+              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-center" style={{ width: '64px', whiteSpace: 'nowrap' }}>QTY</th>
+              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-right" style={{ width: '112px', whiteSpace: 'nowrap' }}>UNIT PRICE</th>
+              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-right" style={{ width: '128px', whiteSpace: 'nowrap' }}>AMOUNT</th>
             </tr>
           </thead>
           <tbody>
             {doc.items.map((it, idx) => (
-              <tr key={it.id} className="border-b border-[#E5E5E5]">
-                <td className="px-4 py-3 text-xs text-gray-500 font-mono">{idx + 1}</td>
-                <td className="px-4 py-3 text-xs">
-                  <div className="font-semibold text-[#111111]">{it.description}</div>
+              <tr key={it.id} style={{ borderBottom: '1px solid #EBEBEB' }}>
+                <td className="py-3 text-[12px] text-[#111111] font-mono tabular-nums">{idx + 1}</td>
+                <td className="py-3 px-2 text-[12px] text-[#111111]">
+                  <div className="font-semibold">{it.description}</div>
                   {it.notes && (
-                    <div className="text-[11px] text-gray-500 mt-0.5">{it.notes}</div>
+                    <div className="text-[11px] text-[#555555] mt-0.5">{it.notes}</div>
                   )}
                 </td>
-                <td className="px-4 py-3 text-xs text-center font-bold tabular-nums">{it.qty}</td>
-                <td className="px-4 py-3 text-xs text-right font-medium tabular-nums">{formatCurrency(it.sellingPrice)}</td>
-                <td className="px-4 py-3 text-xs text-right font-bold tabular-nums text-[#111111]">{formatCurrency(it.lineTotal)}</td>
+                <td className="py-3 text-[12px] text-[#111111] text-center font-bold tabular-nums">{it.qty}</td>
+                <td className="py-3 text-[12px] text-[#111111] text-right tabular-nums">{formatCurrency(it.sellingPrice)}</td>
+                <td className="py-3 text-[12px] text-[#111111] text-right font-bold tabular-nums">{formatCurrency(it.lineTotal)}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        {/* Totals Block */}
-        <div className="flex justify-end mb-8">
-          <div className="w-64 space-y-2 text-xs">
-            <div className="flex justify-between py-1">
-              <span className="text-gray-500 font-medium">Subtotal:</span>
-              <span className="tabular-nums font-bold text-[#111111]">{formatCurrency(doc.totalSellPrice)}</span>
+        {/* SECTION 5 — EcoCash + Totals Split */}
+        <div className="flex mt-6 gap-6">
+          {/* Left 58%: EcoCash instructions */}
+          <div className="pl-4" style={{ width: '58%', borderLeft: '2px solid #C62828' }}>
+            <p className="text-[10px] font-black text-[#111111] tracking-wider uppercase mb-2">
+              ECOCASH PAYMENT INSTRUCTIONS
+            </p>
+            <p className="text-[11px] text-[#555555] leading-relaxed mb-3">
+              For Ecocash Payments please kindly use this code and send the proof of payment.
+            </p>
+            <span className="font-mono text-[13px] font-bold text-[#111111] bg-[#F5F5F5] px-3 py-1.5 inline-block mb-2">
+              *153*2*2*028776*Amount#
+            </span>
+            <p className="text-[12px] font-black text-[#111111]">PodMyth Group</p>
+          </div>
+
+          {/* Right 42%: Totals */}
+          <div className="pl-6" style={{ width: '42%' }}>
+            <div className="flex justify-between text-[12px] py-1 mb-1">
+              <span className="text-[#555555]">Subtotal</span>
+              <span className="font-bold text-[#111111] tabular-nums">{formatCurrency(doc.totalSellPrice)}</span>
             </div>
-            {isInvoice && (
-              <>
-                <div className="flex justify-between py-1 border-t border-[#E5E5E5]">
-                  <span className="text-gray-500 font-medium">Amount Paid:</span>
-                  <span className="tabular-nums font-bold text-green-700">-{formatCurrency(doc.amountPaid)}</span>
+            <div className="flex justify-between text-[12px] py-1 mb-3">
+              <span className="text-[#555555]">Delivery</span>
+              <span className="font-bold text-[#111111]">Included</span>
+            </div>
+            <div style={{ borderTop: '1.5px solid #111111', borderBottom: '1.5px solid #111111' }} className="py-2">
+              <div className="flex justify-between items-baseline">
+                <span className="text-[14px] font-black text-[#111111]">
+                  {isInvoice ? 'Total Due' : 'Quoted Total'}
+                </span>
+                <span className="text-[14px] font-black text-[#C62828] tabular-nums">
+                  {formatCurrency(doc.totalSellPrice)}
+                </span>
+              </div>
+            </div>
+            {isInvoice && doc.amountPaid > 0 && (
+              <div className="mt-2 space-y-1">
+                <div className="flex justify-between text-[12px]">
+                  <span className="text-[#555555]">Amount Paid</span>
+                  <span className="text-[#111111] font-bold tabular-nums">-{formatCurrency(doc.amountPaid)}</span>
                 </div>
-                <div className="flex justify-between py-2 border-t-2 border-[#111111] text-sm">
-                  <span className="font-black text-[#111111]">Balance Due:</span>
-                  <span className="tabular-nums font-black text-[#C62828]">{formatCurrency(outstanding)}</span>
+                <div className="flex justify-between text-[12px]">
+                  <span className="font-black text-[#111111]">Balance Due</span>
+                  <span className="font-black text-[#C62828] tabular-nums">{formatCurrency(outstanding)}</span>
                 </div>
-              </>
-            )}
-            {!isInvoice && (
-              <div className="flex justify-between py-2 border-t-2 border-[#111111] text-sm">
-                <span className="font-black text-[#111111]">Total:</span>
-                <span className="tabular-nums font-black text-[#111111]">{formatCurrency(doc.totalSellPrice)}</span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Mandatory Default Terms Box */}
-        <div className="border border-[#E5E5E5] border-l-4 border-l-[#C62828] p-4 bg-[#F8F9FA]">
-          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">TERMS & CONDITIONS</p>
-          <p className="text-xs text-[#111111] font-medium leading-relaxed">
-            {doc.terms}
+        {/* SECTION 6 — Terms & Policies Strip */}
+        <div className="mt-6 py-4 px-5 bg-[#FAFAFA]" style={{ borderTop: '1px solid #E2E2E2', borderBottom: '1px solid #E2E2E2' }}>
+          <p className="text-[10px] font-black text-[#111111] tracking-wider uppercase mb-2">TERMS & POLICIES</p>
+          <p className="text-[10px] font-bold text-[#111111]">Payment Terms:</p>
+          <p className="text-[11px] text-[#555555] leading-relaxed" style={{ textAlign: 'justify' }}>
+            Payment is strictly due after delivery of services / receipt of items.
+          </p>
+          <p className="text-[10px] font-bold text-[#111111] mt-2">Return Policy:</p>
+          <p className="text-[11px] text-[#555555] leading-relaxed" style={{ textAlign: 'justify' }}>
+            Please make sure you order and verify quotations before your order is confirmed.
           </p>
           {doc.notes && (
-            <p className="text-xs text-gray-600 mt-2 italic">Note: {doc.notes}</p>
+            <p className="text-[11px] text-[#555555] mt-2 italic">{doc.notes}</p>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 pt-4 border-t border-[#E5E5E5] flex justify-between text-[10px] text-gray-400 uppercase tracking-wider">
-          <span>PodMyth Finance System • Official Client Copy</span>
-          <span>Thank you for choosing PodMyth</span>
+        {/* SECTION 7 — Corporate Footer */}
+        <div className="mt-6 pt-4 flex justify-between items-start" style={{ borderTop: '1.5px solid #111111' }}>
+          {/* Left: company info */}
+          <div>
+            <p className="text-[10px] font-black text-[#111111] uppercase tracking-wider">
+              PODMYTH GROUP • PodMerch Subsidiary
+            </p>
+            <p className="text-[10px] text-[#555555] mt-1">
+              Call: +263 784 881 010 • sales@podmyth.co.zw • www.podmyth.co.zw
+            </p>
+          </div>
+
+          {/* Right: Social icons */}
+          <div className="flex items-center gap-3">
+            {/* Facebook */}
+            <div className="flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#111111" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+              </svg>
+              <span className="text-[10px] text-[#555555]">PodMyth</span>
+            </div>
+            {/* Instagram */}
+            <div className="flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <circle cx="12" cy="12" r="4"/>
+                <circle cx="17.5" cy="6.5" r="1" fill="#111111" stroke="none"/>
+              </svg>
+              <span className="text-[10px] text-[#555555]">@podmyth</span>
+            </div>
+            {/* YouTube */}
+            <div className="flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#C62828" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
+                <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/>
+              </svg>
+              <span className="text-[10px] text-[#555555]">PodMyth</span>
+            </div>
+            {/* Website */}
+            <div className="flex items-center gap-1">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#111111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span className="text-[10px] text-[#555555]">www.podmyth.co.zw</span>
+            </div>
+          </div>
         </div>
+
       </div>
 
       {/* ────────────────────────────────────────────────────────────────────────── */}
