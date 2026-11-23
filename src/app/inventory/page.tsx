@@ -26,6 +26,7 @@ interface VariantItem {
 
 export default function InventoryCatalogPage() {
   const [variants, setVariants] = useState<VariantItem[]>([])
+  const [pressedQuotes, setPressedQuotes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [q, setQ] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('ALL')
@@ -34,13 +35,18 @@ export default function InventoryCatalogPage() {
   const loadVariants = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/inventory?lowStock=${lowStockOnly}`)
+      const [res, quoteRes] = await Promise.all([
+        fetch(`/api/inventory?lowStock=${lowStockOnly}`),
+        fetch(`/api/documents?type=QUOTATION&status=ORDER_PRESSED`),
+      ])
       const json = await res.json()
+      const quoteJson = await quoteRes.json()
       setVariants((json.data ?? []).map((v: any) => ({
         ...v,
         defaultBuyPrice: Number(v.defaultBuyPrice),
         defaultSellPrice: Number(v.defaultSellPrice),
       })))
+      setPressedQuotes(quoteJson.data ?? [])
     } finally {
       setLoading(false)
     }
@@ -124,6 +130,46 @@ export default function InventoryCatalogPage() {
           </p>
         </div>
       </div>
+
+      {/* Orders Pressed / Awaiting Restock Panel */}
+      {pressedQuotes.length > 0 && (
+        <div className="bg-amber-50 border border-amber-300 p-5 rounded space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="text-amber-800" size={18} />
+              <h2 className="text-xs font-black uppercase tracking-wider text-amber-900">
+                Orders Pressed / Awaiting Restock ({pressedQuotes.length} active order{pressedQuotes.length > 1 ? 's' : ''})
+              </h2>
+            </div>
+            <Link
+              href="/inventory/receive"
+              className="btn-primary text-xs bg-amber-800 hover:bg-amber-900 text-white"
+            >
+              Receive Stock to Fulfill &rarr;
+            </Link>
+          </div>
+          <p className="text-xs text-amber-800">
+            The following quotations have requested items currently out of stock. Stock incoming via Receive Stock will automatically clear these orders for invoicing.
+          </p>
+          <div className="divide-y divide-amber-200 border-t border-amber-200">
+            {pressedQuotes.map((q: any) => (
+              <div key={q.id} className="py-2.5 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-mono font-bold text-amber-950 mr-2">{q.refNumber}</span>
+                  <span className="font-medium text-amber-900">{q.client?.name}</span>
+                  <span className="text-amber-700 ml-2">({(q.items || []).map((i: any) => `${i.qty}x ${i.description}`).join(', ')})</span>
+                </div>
+                <Link
+                  href={`/quotations/${q.id}`}
+                  className="font-bold text-amber-900 hover:underline"
+                >
+                  View Quote &rarr;
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Filters & Search */}
       <div className="flex flex-wrap items-center justify-between gap-4">

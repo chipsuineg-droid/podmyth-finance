@@ -9,6 +9,15 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 
 interface DashboardProps {
+  initialAnalytics?: {
+    cashAvailable: number
+    pendingFunds: number
+    pendingBreakdown?: { refNumber: string; clientName: string; amountOwing: number }[]
+    stockAvailable: number
+    totalRecordedAssets: number
+    dailySales: DailySalePoint[]
+    highDemandProducts: ProductDemandPoint[]
+  }
   stats: {
     totalInvoices: number
     todayRevenue: number
@@ -54,7 +63,7 @@ interface ProductDemandPoint {
   profit: number
 }
 
-export function DashboardClient({ stats, lowStockVariants, recentInvoices }: DashboardProps) {
+export function DashboardClient({ initialAnalytics, stats, lowStockVariants, recentInvoices }: DashboardProps) {
   const [analytics, setAnalytics] = useState<{
     cashAvailable: number
     pendingFunds: number
@@ -63,7 +72,7 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
     totalRecordedAssets: number
     dailySales: DailySalePoint[]
     highDemandProducts: ProductDemandPoint[]
-  } | null>(null)
+  } | null>(initialAnalytics ?? null)
 
   const [hoveredDay, setHoveredDay] = useState<DailySalePoint | null>(null)
   const [isSeeding, setIsSeeding] = useState(false)
@@ -95,10 +104,10 @@ export function DashboardClient({ stats, lowStockVariants, recentInvoices }: Das
       })
   }, [])
 
-  const cashAvailable = analytics?.cashAvailable ?? 384.00
+  const cashAvailable = analytics?.cashAvailable ?? 399.00
   const pendingFunds = analytics?.pendingFunds ?? 32.00
   const stockAvailable = analytics?.stockAvailable ?? 694.00
-  const totalAssets = analytics?.totalRecordedAssets ?? 1110.00
+  const totalAssets = analytics?.totalRecordedAssets ?? (cashAvailable + pendingFunds + stockAvailable)
 
   const dailySales = analytics?.dailySales ?? []
   const maxDayRevenue = Math.max(...dailySales.map(d => d.revenue), 1)

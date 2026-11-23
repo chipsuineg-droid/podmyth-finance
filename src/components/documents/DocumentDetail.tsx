@@ -111,14 +111,24 @@ export function DocumentDetail({ id }: { id: string }) {
     fetchDoc()
   }, [fetchDoc])
 
-  const handleConvert = async () => {
-    if (!confirm('Convert this Quotation to an official Invoice? Stock will be automatically deducted.')) return
+  const handleConvert = async (allowBackorder = false) => {
+    if (!allowBackorder && !confirm('Convert this Quotation to an official Invoice? Stock will be deducted from the catalog.')) return
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/documents/${id}/convert`, { method: 'POST' })
+      const res = await fetch(`/api/documents/${id}/convert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allowBackorder })
+      })
       const json = await res.json()
       if (!res.ok) {
-        toast(json.error || 'Conversion failed', 'error')
+        if (json.canOverride) {
+          if (confirm(`${json.error}\n\nDo you want to confirm a Backorder Override and proceed with invoice generation anyway?`)) {
+            return handleConvert(true)
+          }
+        } else {
+          toast(json.error || 'Conversion failed', 'error')
+        }
         return
       }
       toast('Quotation converted to Invoice successfully!', 'success')
@@ -219,9 +229,13 @@ export function DocumentDetail({ id }: { id: string }) {
                 doc.status === 'PAID' ? 'bg-green-50 text-green-800 border-green-200' :
                 doc.status === 'DELIVERED_PENDING' ? 'bg-amber-50 text-amber-800 border-amber-200' :
                 doc.status === 'ACCEPTED' ? 'bg-green-50 text-green-800 border-green-200' :
+                doc.status === 'ORDER_PRESSED' ? 'bg-amber-100 text-amber-900 border-amber-300' :
+                doc.status === 'STOCK_READY' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
                 'bg-gray-50 text-gray-700 border-gray-200'
               }`}>
-                {doc.status.replace('_', ' ')}
+                {doc.status === 'ORDER_PRESSED' ? 'ORDER PRESSED / AWAITING STOCK' :
+                 doc.status === 'STOCK_READY' ? 'STOCK READY — READY TO INVOICE' :
+                 doc.status.replace('_', ' ')}
               </span>
             </div>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -254,7 +268,7 @@ export function DocumentDetail({ id }: { id: string }) {
 
           {!isInvoice && doc.status !== 'ACCEPTED' && (
             <button
-              onClick={handleConvert}
+              onClick={() => handleConvert()}
               disabled={submitting}
               className="btn-primary text-xs flex items-center gap-1.5"
             >
@@ -290,6 +304,29 @@ export function DocumentDetail({ id }: { id: string }) {
           </button>
         </div>
       </div>
+
+      {/* Orders Pressed / Awaiting Stock Notice for Quotations */}
+      {doc.status === 'ORDER_PRESSED' && (
+        <div className="no-print mb-6 bg-amber-50 border border-amber-300 p-4 rounded flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="text-amber-700" size={20} />
+            <div>
+              <p className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                Order Pressed / Awaiting Stock
+              </p>
+              <p className="text-xs text-amber-800">
+                One or more items in this quotation exceed available physical stock. Restock via Receive Shipment in Inventory to fulfill, or use Backorder Override when converting to Invoice.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/inventory/receive"
+            className="text-xs font-bold text-amber-900 border border-amber-400 bg-white px-3 py-1.5 rounded hover:bg-amber-100 whitespace-nowrap"
+          >
+            Receive Shipment &rarr;
+          </Link>
+        </div>
+      )}
 
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* INTERNAL VIEW MODE */}

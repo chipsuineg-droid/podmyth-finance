@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { formatCurrency } from '@/lib/finance'
-import { Search, Plus, TrendingUp, TrendingDown, ChevronDown } from 'lucide-react'
+import { Search, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
 
 type DocType = 'INVOICE' | 'QUOTATION'
 
@@ -21,17 +21,49 @@ interface DocRow {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Draft', ISSUED: 'Issued', DELIVERED_PENDING: 'Pending Payment',
-  PAID: 'Paid', PARTIAL: 'Partial', VOID: 'Void', CANCELLED: 'Cancelled',
-  SENT: 'Sent', ACCEPTED: 'Accepted', REJECTED: 'Rejected',
+  DRAFT: 'Draft',
+  ISSUED: 'Issued',
+  DELIVERED_PENDING: 'Pending Payment',
+  PAID: 'Paid',
+  PARTIAL: 'Partial',
+  VOID: 'Void',
+  CANCELLED: 'Cancelled',
+  SENT: 'Sent',
+  ACCEPTED: 'Accepted',
+  REJECTED: 'Rejected',
+  ORDER_PRESSED: 'ORDER PRESSED / AWAITING STOCK',
+  STOCK_READY: 'STOCK READY — READY TO INVOICE',
 }
 
 function StatusBadge({ status }: { status: string }) {
+  if (status === 'ORDER_PRESSED') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-amber-100 text-amber-900 border border-amber-300">
+        <AlertCircle size={10} />
+        ORDER PRESSED / AWAITING STOCK
+      </span>
+    )
+  }
+  if (status === 'STOCK_READY') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+        <CheckCircle2 size={10} />
+        STOCK READY — READY TO INVOICE
+      </span>
+    )
+  }
+
   const cls = {
-    PAID: 'badge-paid', ACCEPTED: 'badge-paid',
-    DELIVERED_PENDING: 'badge-pending', PARTIAL: 'badge-pending', SENT: 'badge-pending',
-    DRAFT: 'badge-draft', ISSUED: 'badge-draft',
-    VOID: 'badge-void', CANCELLED: 'badge-void', REJECTED: 'badge-void',
+    PAID: 'badge-paid',
+    ACCEPTED: 'badge-paid',
+    DELIVERED_PENDING: 'badge-pending',
+    PARTIAL: 'badge-pending',
+    SENT: 'badge-pending',
+    DRAFT: 'badge-draft',
+    ISSUED: 'badge-draft',
+    VOID: 'badge-void',
+    CANCELLED: 'badge-void',
+    REJECTED: 'badge-void',
   }[status] ?? 'badge-draft'
   return <span className={cls}>{STATUS_LABELS[status] ?? status}</span>
 }
@@ -39,6 +71,7 @@ function StatusBadge({ status }: { status: string }) {
 export function DocumentList({ type }: { type: DocType }) {
   const [docs, setDocs] = useState<DocRow[]>([])
   const [q, setQ] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
@@ -61,6 +94,18 @@ export function DocumentList({ type }: { type: DocType }) {
   const label = isInvoice ? 'Invoice' : 'Quotation'
   const newPath = isInvoice ? '/invoices/new' : '/quotations/new'
   const detailPath = isInvoice ? '/invoices' : '/quotations'
+
+  const pressedOrdersCount = docs.filter(d => d.status === 'ORDER_PRESSED').length
+  const stockReadyCount = docs.filter(d => d.status === 'STOCK_READY').length
+
+  const filteredDocs = docs.filter(d => {
+    if (statusFilter === 'ALL') return true
+    if (statusFilter === 'ORDER_PRESSED') return d.status === 'ORDER_PRESSED'
+    if (statusFilter === 'STOCK_READY') return d.status === 'STOCK_READY'
+    if (statusFilter === 'PAID') return d.status === 'PAID'
+    if (statusFilter === 'PENDING') return d.status === 'DELIVERED_PENDING' || d.status === 'PARTIAL'
+    return true
+  })
 
   const totalRevenue = docs.reduce((s, d) => s + d.totalSellPrice, 0)
   const totalProfit = docs.reduce((s, d) => s + d.netProfit, 0)
@@ -97,15 +142,63 @@ export function DocumentList({ type }: { type: DocType }) {
         </div>
       )}
 
-      {/* Search */}
-      <div className="mb-4 relative">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          className="input pl-9 max-w-sm"
-          placeholder={`Search ${label.toLowerCase()}s or clients...`}
-          value={q}
-          onChange={e => setQ(e.target.value)}
-        />
+      {/* Quotation Orders Pressed Alert */}
+      {!isInvoice && pressedOrdersCount > 0 && (
+        <div className="mb-6 bg-amber-50 border border-amber-300 p-4 rounded flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="text-amber-700" size={20} />
+            <div>
+              <p className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                Orders Pressed / Awaiting Restock: {pressedOrdersCount} Quotation{pressedOrdersCount > 1 ? 's' : ''}
+              </p>
+              <p className="text-xs text-amber-800">
+                These quotations exceed current physical stock. Receiving shipments in the Stock Catalog will automatically mark them ready.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'ORDER_PRESSED' ? 'ALL' : 'ORDER_PRESSED')}
+            className="text-xs font-bold text-amber-900 border border-amber-400 bg-white px-3 py-1.5 rounded hover:bg-amber-100"
+          >
+            {statusFilter === 'ORDER_PRESSED' ? 'Show All' : 'Filter Pressed Orders'}
+          </button>
+        </div>
+      )}
+
+      {/* Filter Tabs & Search */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            className="input pl-9 w-full"
+            placeholder={`Search ${label.toLowerCase()}s or clients...`}
+            value={q}
+            onChange={e => setQ(e.target.value)}
+          />
+        </div>
+
+        {!isInvoice && (
+          <div className="flex items-center gap-1.5 text-xs">
+            <button
+              onClick={() => setStatusFilter('ALL')}
+              className={`px-3 py-1.5 rounded font-semibold ${statusFilter === 'ALL' ? 'bg-[#111111] text-white' : 'bg-gray-100 text-gray-600'}`}
+            >
+              All ({docs.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('ORDER_PRESSED')}
+              className={`px-3 py-1.5 rounded font-semibold ${statusFilter === 'ORDER_PRESSED' ? 'bg-amber-700 text-white' : 'bg-amber-50 text-amber-800 border border-amber-200'}`}
+            >
+              Orders Pressed ({pressedOrdersCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter('STOCK_READY')}
+              className={`px-3 py-1.5 rounded font-semibold ${statusFilter === 'STOCK_READY' ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`}
+            >
+              Stock Ready ({stockReadyCount})
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -118,48 +211,56 @@ export function DocumentList({ type }: { type: DocType }) {
                 <th className="table-header text-left">Client</th>
                 <th className="table-header text-left">Date</th>
                 <th className="table-header text-right">Amount</th>
-                {isInvoice && <th className="table-header text-right">Profit</th>}
                 {isInvoice && <th className="table-header text-right">Collected</th>}
                 <th className="table-header text-left">Status</th>
-                <th className="table-header text-left">Action</th>
+                <th className="table-header text-right">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="py-16 text-center text-sm text-gray-400">Loading...</td></tr>
-              ) : docs.length === 0 ? (
-                <tr><td colSpan={8} className="py-16 text-center text-sm text-gray-400">
-                  No {label.toLowerCase()}s found. <Link href={newPath} className="text-[#C62828] hover:underline">Create one →</Link>
-                </td></tr>
-              ) : docs.map(doc => (
-                <tr key={doc.id} className="table-row">
-                  <td className="table-cell">
-                    <Link href={`${detailPath}/${doc.id}`} className="font-mono text-xs text-[#C62828] hover:underline font-bold">
-                      {doc.refNumber}
-                    </Link>
-                  </td>
-                  <td className="table-cell font-medium">{doc.client.name}</td>
-                  <td className="table-cell text-gray-500 text-xs">{format(new Date(doc.issueDate), 'd MMM yyyy')}</td>
-                  <td className="table-cell text-right tabular-nums font-semibold">{formatCurrency(doc.totalSellPrice)}</td>
-                  {isInvoice && (
-                    <td className={`table-cell text-right tabular-nums font-semibold ${doc.netProfit < 0 ? 'text-[#C62828]' : 'text-green-700'}`}>
-                      <div className="flex items-center justify-end gap-1">
-                        {doc.netProfit < 0 ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
-                        {formatCurrency(doc.netProfit)}
-                      </div>
-                    </td>
-                  )}
-                  {isInvoice && (
-                    <td className="table-cell text-right tabular-nums text-gray-600">{formatCurrency(doc.amountPaid)}</td>
-                  )}
-                  <td className="table-cell"><StatusBadge status={doc.status} /></td>
-                  <td className="table-cell">
-                    <Link href={`${detailPath}/${doc.id}`} className="text-xs text-[#111111] hover:text-[#C62828] font-semibold underline">
-                      View
-                    </Link>
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-sm text-gray-400">Loading...</td>
+                </tr>
+              ) : filteredDocs.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-sm text-gray-400">
+                    No {label.toLowerCase()}s found
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredDocs.map(doc => (
+                  <tr key={doc.id} className="table-row">
+                    <td className="table-cell font-mono text-xs font-semibold">
+                      <Link href={`${detailPath}/${doc.id}`} className="hover:text-[#C62828] hover:underline">
+                        {doc.refNumber}
+                      </Link>
+                    </td>
+                    <td className="table-cell font-medium">{doc.client.name}</td>
+                    <td className="table-cell text-gray-500 text-xs">
+                      {format(new Date(doc.issueDate), 'dd MMM yyyy')}
+                    </td>
+                    <td className="table-cell text-right font-bold tabular-nums">
+                      {formatCurrency(doc.totalSellPrice)}
+                    </td>
+                    {isInvoice && (
+                      <td className="table-cell text-right font-medium tabular-nums text-gray-600">
+                        {formatCurrency(doc.amountPaid)}
+                      </td>
+                    )}
+                    <td className="table-cell">
+                      <StatusBadge status={doc.status} />
+                    </td>
+                    <td className="table-cell text-right">
+                      <Link
+                        href={`${detailPath}/${doc.id}`}
+                        className="text-xs font-semibold text-gray-500 hover:text-[#111111] hover:underline"
+                      >
+                        View &rarr;
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

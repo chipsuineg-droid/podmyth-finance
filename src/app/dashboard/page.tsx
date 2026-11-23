@@ -1,8 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { DashboardClient } from '@/components/dashboard/DashboardClient'
+import { getReconciledAnalytics } from '@/lib/analytics'
 import { startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function DashboardPage() {
   const now = new Date()
@@ -12,15 +14,16 @@ export default async function DashboardPage() {
   const todayEnd = endOfDay(now)
 
   const [
+    analytics,
     invoices,
     todayRevenue,
     monthRevenue,
     totalRevenue,
-    pendingAR,
     lowStockVariants,
     recentExpenses,
     recentInvoices,
   ] = await Promise.all([
+    getReconciledAnalytics(),
     prisma.document.count({ where: { type: 'INVOICE', status: { not: 'VOID' } } }),
     prisma.document.aggregate({
       where: { type: 'INVOICE', status: { not: 'VOID' }, issueDate: { gte: todayStart, lte: todayEnd } },
@@ -33,10 +36,6 @@ export default async function DashboardPage() {
     prisma.document.aggregate({
       where: { type: 'INVOICE', status: { not: 'VOID' } },
       _sum: { totalSellPrice: true, netProfit: true, amountPaid: true }
-    }),
-    prisma.document.aggregate({
-      where: { type: 'INVOICE', status: { notIn: ['PAID', 'VOID'] } },
-      _sum: { totalSellPrice: true, amountPaid: true }
     }),
     prisma.variant.findMany({
       where: { stockQty: { lte: 2 }, product: { isService: false } },
@@ -53,10 +52,9 @@ export default async function DashboardPage() {
     }),
   ])
 
-  const arBalance = Number(pendingAR._sum.totalSellPrice ?? 0) - Number(pendingAR._sum.amountPaid ?? 0)
-
   return (
     <DashboardClient
+      initialAnalytics={analytics}
       stats={{
         totalInvoices: invoices,
         todayRevenue: Number(todayRevenue._sum.totalSellPrice ?? 0),
@@ -66,7 +64,7 @@ export default async function DashboardPage() {
         monthCollected: Number(monthRevenue._sum.amountPaid ?? 0),
         totalRevenue: Number(totalRevenue._sum.totalSellPrice ?? 0),
         totalProfit: Number(totalRevenue._sum.netProfit ?? 0),
-        arBalance,
+        arBalance: analytics.pendingFunds,
       }}
       lowStockVariants={lowStockVariants.map(v => ({
         id: v.id,
