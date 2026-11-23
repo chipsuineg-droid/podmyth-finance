@@ -226,15 +226,15 @@ export function DocumentDetail({ id }: { id: string }) {
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-black text-[#111111] tracking-tight">{doc.refNumber}</h1>
               <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 border ${
-                doc.status === 'PAID' ? 'bg-green-50 text-green-800 border-green-200' :
-                doc.status === 'DELIVERED_PENDING' ? 'bg-amber-50 text-amber-800 border-amber-200' :
-                doc.status === 'ACCEPTED' ? 'bg-green-50 text-green-800 border-green-200' :
-                doc.status === 'ORDER_PRESSED' ? 'bg-amber-100 text-amber-900 border-amber-300' :
-                doc.status === 'STOCK_READY' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
-                'bg-gray-50 text-gray-700 border-gray-200'
+                doc.status === 'PAID' ? 'bg-[#111111] text-white border-[#111111]' :
+                doc.status === 'DELIVERED_PENDING' ? 'bg-white text-[#C62828] border-[#C62828]' :
+                doc.status === 'ACCEPTED' ? 'bg-[#111111] text-white border-[#111111]' :
+                doc.status === 'ORDER_PRESSED' ? 'bg-white text-[#C62828] border-[#C62828]' :
+                doc.status === 'STOCK_READY' ? 'bg-[#111111] text-white border-[#111111]' :
+                'bg-white text-[#111111] border-[#E5E5E5]'
               }`}>
-                {doc.status === 'ORDER_PRESSED' ? 'ORDER PRESSED / AWAITING STOCK' :
-                 doc.status === 'STOCK_READY' ? 'STOCK READY — READY TO INVOICE' :
+                {doc.status === 'ORDER_PRESSED' ? 'ORDER PRESSED: AWAITING STOCK' :
+                 doc.status === 'STOCK_READY' ? 'STOCK READY: READY TO INVOICE' :
                  doc.status.replace('_', ' ')}
               </span>
             </div>
@@ -307,23 +307,20 @@ export function DocumentDetail({ id }: { id: string }) {
 
       {/* Orders Pressed / Awaiting Stock Notice for Quotations */}
       {doc.status === 'ORDER_PRESSED' && (
-        <div className="no-print mb-6 bg-amber-50 border border-amber-300 p-4 rounded flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="text-amber-700" size={20} />
-            <div>
-              <p className="text-xs font-bold text-amber-900 uppercase tracking-wider">
-                Order Pressed / Awaiting Stock
-              </p>
-              <p className="text-xs text-amber-800">
-                One or more items in this quotation exceed available physical stock. Restock via Receive Shipment in Inventory to fulfill, or use Backorder Override when converting to Invoice.
-              </p>
-            </div>
+        <div className="no-print mb-6 card border-l-4 border-l-[#C62828] p-4 flex items-center justify-between bg-white">
+          <div>
+            <p className="text-xs font-bold text-[#111111] uppercase tracking-wider">
+              Order Pressed: Awaiting Stock
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              One or more items in this quotation exceed available physical stock. Restock via Receive Shipment in Inventory to fulfill, or confirm Backorder Override when converting to Invoice.
+            </p>
           </div>
           <Link
             href="/inventory/receive"
-            className="text-xs font-bold text-amber-900 border border-amber-400 bg-white px-3 py-1.5 rounded hover:bg-amber-100 whitespace-nowrap"
+            className="btn-secondary text-xs font-bold whitespace-nowrap"
           >
-            Receive Shipment &rarr;
+            Receive Stock &rarr;
           </Link>
         </div>
       )}
@@ -334,23 +331,23 @@ export function DocumentDetail({ id }: { id: string }) {
       {viewMode === 'internal' && (
         <div className="no-print space-y-6">
           {/* Internal P&L Live Banner */}
-          <div className={`card border-l-4 ${isLoss ? 'border-l-[#C62828] bg-red-50/20' : 'border-l-green-600 bg-white'}`}>
+          <div className={`card border-l-4 ${isLoss ? 'border-l-[#C62828] bg-white' : 'border-l-[#111111] bg-white'}`}>
             <div className="flex items-center justify-between pb-3 border-b border-[#E5E5E5] mb-4">
               <div className="flex items-center gap-2">
                 {isLoss ? (
                   <TrendingDown size={18} className="text-[#C62828]" />
                 ) : (
-                  <TrendingUp size={18} className="text-green-600" />
+                  <TrendingUp size={18} className="text-[#111111]" />
                 )}
                 <div>
                   <h2 className="text-xs font-black uppercase tracking-wider text-[#111111]">
                     Internal Real-Time Profit & Loss Breakdown
                   </h2>
-                  <p className="text-[11px] text-gray-500">Confidential internal ledger data — strictly hidden from client documents</p>
+                  <p className="text-[11px] text-gray-500">Confidential internal ledger data - strictly hidden from client documents</p>
                 </div>
               </div>
               <span className={`text-xs font-black px-2.5 py-1 border tabular-nums ${
-                isLoss ? 'bg-red-50 text-[#C62828] border-red-200' : 'bg-green-50 text-green-800 border-green-200'
+                isLoss ? 'bg-white text-[#C62828] border-[#C62828]' : 'bg-[#111111] text-white border-[#111111]'
               }`}>
                 {isLoss ? 'LOSS ORDER' : 'PROFITABLE'} ({formatPercent(doc.profitMargin)})
               </span>

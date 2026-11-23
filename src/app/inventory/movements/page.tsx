@@ -139,10 +139,9 @@ export default function StockMovementsPage() {
                       </td>
                       <td className="table-cell">
                         <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 border ${
-                          m.type === 'INBOUND' ? 'bg-green-50 text-green-800 border-green-200' :
-                          m.type === 'SALE' ? 'bg-blue-50 text-blue-800 border-blue-200' :
-                          m.type === 'SHRINKAGE' ? 'bg-red-50 text-[#C62828] border-red-200' :
-                          'bg-amber-50 text-amber-800 border-amber-200'
+                          m.type === 'INBOUND' ? 'bg-[#111111] text-white border-[#111111]' :
+                          m.type === 'SALE' || m.type === 'OUTBOUND_SALE' ? 'bg-white text-[#111111] border-[#111111]' :
+                          'bg-white text-[#C62828] border-[#C62828]'
                         }`}>
                           {isInbound ? <ArrowDownLeft size={11} /> : <ArrowUpRight size={11} />}
                           {m.type}
@@ -150,10 +149,10 @@ export default function StockMovementsPage() {
                       </td>
                       <td className="table-cell text-xs font-semibold text-[#111111]">
                         {m.variant.product.name}
-                        <span className="text-gray-500 font-normal"> — {m.variant.color} / {m.variant.size}</span>
+                        <span className="text-gray-500 font-normal"> - {m.variant.color} / {m.variant.size}</span>
                       </td>
                       <td className="table-cell text-center font-mono text-xs text-gray-400">{m.variant.sku}</td>
-                      <td className={`table-cell text-center tabular-nums text-xs font-black ${isInbound ? 'text-green-700' : 'text-[#C62828]'}`}>
+                      <td className={`table-cell text-center tabular-nums text-xs font-black ${isInbound ? 'text-[#111111]' : 'text-[#C62828]'}`}>
                         {isInbound ? `+${m.qty}` : m.qty}
                       </td>
                       <td className="table-cell text-right tabular-nums text-xs text-gray-600">

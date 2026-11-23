@@ -179,7 +179,7 @@ export default function ExpensesPage() {
                     <td className="table-cell text-right tabular-nums text-xs font-bold text-[#C62828]">
                       {formatCurrency(e.amount)}
                     </td>
-                    <td className="table-cell text-xs text-gray-500 italic">{e.notes || '—'}</td>
+                    <td className="table-cell text-xs text-gray-500 italic">{e.notes || '-'}</td>
                     <td className="table-cell text-center">
                       <button
                         onClick={() => handleDelete(e.id)}

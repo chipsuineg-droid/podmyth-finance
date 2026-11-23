@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/Toaster'
 
 export const metadata: Metadata = {
   title: 'PodMyth Finance',
-  description: 'Finance, Billing & Inventory Management — PodMyth Medical Apparel',
+  description: 'Finance, Billing & Inventory Management - PodMyth Medical Apparel',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

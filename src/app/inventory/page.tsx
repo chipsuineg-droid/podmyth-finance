@@ -131,37 +131,34 @@ export default function InventoryCatalogPage() {
         </div>
       </div>
 
-      {/* Orders Pressed / Awaiting Restock Panel */}
+      {/* Orders Pressed / Awaiting Stock Panel */}
       {pressedQuotes.length > 0 && (
-        <div className="bg-amber-50 border border-amber-300 p-5 rounded space-y-3">
+        <div className="card border-l-4 border-l-[#C62828] p-5 space-y-3 bg-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="text-amber-800" size={18} />
-              <h2 className="text-xs font-black uppercase tracking-wider text-amber-900">
-                Orders Pressed / Awaiting Restock ({pressedQuotes.length} active order{pressedQuotes.length > 1 ? 's' : ''})
-              </h2>
-            </div>
+            <h2 className="text-xs font-black uppercase tracking-wider text-[#111111]">
+              Orders Pressed / Awaiting Stock ({pressedQuotes.length} active order{pressedQuotes.length > 1 ? 's' : ''})
+            </h2>
             <Link
               href="/inventory/receive"
-              className="btn-primary text-xs bg-amber-800 hover:bg-amber-900 text-white"
+              className="btn-primary text-xs"
             >
               Receive Stock to Fulfill &rarr;
             </Link>
           </div>
-          <p className="text-xs text-amber-800">
+          <p className="text-xs text-gray-500">
             The following quotations have requested items currently out of stock. Stock incoming via Receive Stock will automatically clear these orders for invoicing.
           </p>
-          <div className="divide-y divide-amber-200 border-t border-amber-200">
+          <div className="divide-y divide-[#E5E5E5] border-t border-[#E5E5E5]">
             {pressedQuotes.map((q: any) => (
               <div key={q.id} className="py-2.5 flex items-center justify-between text-xs">
                 <div>
-                  <span className="font-mono font-bold text-amber-950 mr-2">{q.refNumber}</span>
-                  <span className="font-medium text-amber-900">{q.client?.name}</span>
-                  <span className="text-amber-700 ml-2">({(q.items || []).map((i: any) => `${i.qty}x ${i.description}`).join(', ')})</span>
+                  <span className="font-mono font-bold text-[#C62828] mr-2">{q.refNumber}</span>
+                  <span className="font-bold text-[#111111]">{q.client?.name}</span>
+                  <span className="text-gray-500 ml-2">({(q.items || []).map((i: any) => `${i.qty}x ${i.description}`).join(', ')})</span>
                 </div>
                 <Link
                   href={`/quotations/${q.id}`}
-                  className="font-bold text-amber-900 hover:underline"
+                  className="font-bold text-[#111111] hover:text-[#C62828] hover:underline"
                 >
                   View Quote &rarr;
                 </Link>
@@ -253,25 +250,25 @@ export default function InventoryCatalogPage() {
                       <td className="table-cell text-right tabular-nums text-xs font-bold text-[#111111]">
                         {formatCurrency(v.defaultSellPrice)}
                       </td>
-                      <td className="table-cell text-right tabular-nums text-xs font-semibold text-green-700">
+                      <td className="table-cell text-right tabular-nums text-xs font-semibold text-[#111111]">
                         {margin.toFixed(0)}%
                       </td>
                       <td className="table-cell text-center tabular-nums text-xs font-black">
-                        {isService ? '—' : v.stockQty}
+                        {isService ? 'N/A' : v.stockQty}
                       </td>
                       <td className="table-cell text-center">
                         {isService ? (
                           <span className="text-[10px] text-gray-400 uppercase">On-Demand</span>
                         ) : isOut ? (
-                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 bg-red-50 text-[#C62828] border border-red-200 uppercase">
+                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 bg-white text-[#C62828] border border-[#C62828] uppercase">
                             OUT OF STOCK
                           </span>
                         ) : isLow ? (
-                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 uppercase">
+                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 bg-white text-[#C62828] border border-[#C62828] uppercase">
                             LOW ({v.stockQty})
                           </span>
                         ) : (
-                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 bg-green-50 text-green-800 border border-green-200 uppercase">
+                          <span className="inline-block text-[10px] font-bold px-2 py-0.5 bg-[#111111] text-white border border-[#111111] uppercase">
                             IN STOCK
                           </span>
                         )}

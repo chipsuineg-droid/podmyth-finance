@@ -194,7 +194,7 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
                 <label className="label">Client *</label>
                 <select className="select" value={clientId} onChange={e => setClientId(e.target.value)}>
                   <option value="">Select client...</option>
-                  {clients.map(c => <option key={c.id} value={c.id}>{c.name}{c.city ? ` — ${c.city}` : ''}</option>)}
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.name}{c.city ? ` - ${c.city}` : ''}</option>)}
                 </select>
                 <button
                   type="button"
@@ -388,7 +388,7 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
                       : 'bg-white text-gray-700 border-[#E5E5E5] hover:bg-gray-50'
                   }`}
                 >
-                  ✓ Paid Now (Cash)
+                  Paid Now (Cash)
                 </button>
                 <button
                   type="button"

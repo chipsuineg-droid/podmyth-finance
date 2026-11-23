@@ -224,7 +224,7 @@ export default function ReconciliationReportPage() {
             >
               {data?.availableMonths?.map(m => (
                 <option key={m.value} value={m.value}>
-                  {m.label} {m.isOfficial ? '★ (Official Report)' : ''}
+                  {m.label} {m.isOfficial ? '(Official Report)' : ''}
                 </option>
               ))}
             </select>
@@ -485,14 +485,14 @@ export default function ReconciliationReportPage() {
                 <tbody className="divide-y divide-[#E5E5E5]">
                   {/* Unbanked mobile money / internal cash held */}
                   {data.unbankedFunds.map((u, idx) => (
-                    <tr key={`u-${idx}`} className="bg-amber-50/40">
+                    <tr key={`u-${idx}`} className="hover:bg-[#F8F9FA]">
                       <td className="py-2.5 px-4 font-bold text-[#111111]">{u.description}</td>
                       <td className="py-2.5 px-4 text-gray-500 text-[11px] hidden sm:table-cell">Internal Reserve</td>
                       <td className="py-2.5 px-4 text-right font-black tabular-nums text-[#111111]">
                         {formatCurrency(u.amount)}
                       </td>
                       <td className="py-2.5 px-4 text-center">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-100 px-2 py-0.5">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-[#C62828] bg-white border border-[#C62828] px-2 py-0.5">
                           {u.status}
                         </span>
                       </td>

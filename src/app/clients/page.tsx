@@ -169,10 +169,10 @@ export default function ClientsPage() {
                       {c.notes && <p className="text-[11px] text-gray-400 italic mt-0.5">{c.notes}</p>}
                     </td>
                     <td className="table-cell text-xs text-gray-600 font-mono">
-                      {c.phone || '—'}
+                      {c.phone || '-'}
                     </td>
                     <td className="table-cell text-xs text-gray-600">
-                      {c.city ? `${c.city}${c.deliveryZone ? ` (${c.deliveryZone})` : ''}` : '—'}
+                      {c.city ? `${c.city}${c.deliveryZone ? ` (${c.deliveryZone})` : ''}` : '-'}
                     </td>
                     <td className="table-cell text-center tabular-nums text-xs font-bold">
                       {c.orderCount}
@@ -180,7 +180,7 @@ export default function ClientsPage() {
                     <td className="table-cell text-right tabular-nums text-xs font-bold text-[#111111]">
                       {formatCurrency(c.totalRevenue)}
                     </td>
-                    <td className={`table-cell text-right tabular-nums text-xs font-semibold ${c.totalProfit < 0 ? 'text-[#C62828]' : 'text-green-700'}`}>
+                    <td className={`table-cell text-right tabular-nums text-xs font-semibold ${c.totalProfit < 0 ? 'text-[#C62828]' : 'text-[#111111]'}`}>
                       {formatCurrency(c.totalProfit)}
                     </td>
                     <td className="table-cell text-right tabular-nums text-xs">

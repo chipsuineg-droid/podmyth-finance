@@ -1,4 +1,4 @@
-// API route helpers — shared types
+// API route helpers - shared types
 export interface ApiResponse<T = unknown> {
   data?: T
   error?: string

@@ -280,7 +280,7 @@ export default function StockTakePage() {
                         <td className="table-cell font-mono text-xs text-gray-500 font-semibold">{line.variant.sku}</td>
                         <td className="table-cell text-xs font-semibold text-[#111111]">
                           {line.variant.product.name}
-                          <span className="text-gray-500 font-normal"> — {line.variant.color} / {line.variant.size}</span>
+                          <span className="text-gray-500 font-normal"> - {line.variant.color} / {line.variant.size}</span>
                         </td>
                         <td className="table-cell text-right tabular-nums text-xs text-gray-600 font-medium">
                           {formatCurrency(line.variant.defaultBuyPrice)}

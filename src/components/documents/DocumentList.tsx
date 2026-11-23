@@ -25,30 +25,28 @@ const STATUS_LABELS: Record<string, string> = {
   ISSUED: 'Issued',
   DELIVERED_PENDING: 'Pending Payment',
   PAID: 'Paid',
-  PARTIAL: 'Partial',
+  PARTIAL: 'Partial Payment',
   VOID: 'Void',
   CANCELLED: 'Cancelled',
   SENT: 'Sent',
   ACCEPTED: 'Accepted',
   REJECTED: 'Rejected',
-  ORDER_PRESSED: 'ORDER PRESSED / AWAITING STOCK',
-  STOCK_READY: 'STOCK READY — READY TO INVOICE',
+  ORDER_PRESSED: 'ORDER PRESSED: AWAITING STOCK',
+  STOCK_READY: 'STOCK READY: READY TO INVOICE',
 }
 
 function StatusBadge({ status }: { status: string }) {
   if (status === 'ORDER_PRESSED') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-amber-100 text-amber-900 border border-amber-300">
-        <AlertCircle size={10} />
-        ORDER PRESSED / AWAITING STOCK
+      <span className="inline-block px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-white text-[#C62828] border border-[#C62828]">
+        ORDER PRESSED: AWAITING STOCK
       </span>
     )
   }
   if (status === 'STOCK_READY') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
-        <CheckCircle2 size={10} />
-        STOCK READY — READY TO INVOICE
+      <span className="inline-block px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase bg-[#111111] text-white border border-[#111111]">
+        STOCK READY: READY TO INVOICE
       </span>
     )
   }
@@ -58,7 +56,7 @@ function StatusBadge({ status }: { status: string }) {
     ACCEPTED: 'badge-paid',
     DELIVERED_PENDING: 'badge-pending',
     PARTIAL: 'badge-pending',
-    SENT: 'badge-pending',
+    SENT: 'badge-draft',
     DRAFT: 'badge-draft',
     ISSUED: 'badge-draft',
     VOID: 'badge-void',
@@ -131,34 +129,31 @@ export function DocumentList({ type }: { type: DocType }) {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Billed</p>
             <p className="text-xl font-black tabular-nums">{formatCurrency(totalRevenue)}</p>
           </div>
-          <div className={`stat-card border-l-4 ${totalProfit >= 0 ? 'border-l-green-500' : 'border-l-[#C62828]'}`}>
+          <div className="stat-card border-l-4 border-l-[#111111]">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Net Profit</p>
-            <p className={`text-xl font-black tabular-nums ${totalProfit < 0 ? 'text-[#C62828]' : ''}`}>{formatCurrency(totalProfit)}</p>
+            <p className={`text-xl font-black tabular-nums ${totalProfit < 0 ? 'text-[#C62828]' : 'text-[#111111]'}`}>{formatCurrency(totalProfit)}</p>
           </div>
-          <div className="stat-card border-l-4 border-l-amber-500">
+          <div className="stat-card border-l-4 border-l-[#C62828]">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Collected</p>
-            <p className="text-xl font-black tabular-nums">{formatCurrency(totalCollected)}</p>
+            <p className="text-xl font-black tabular-nums text-[#C62828]">{formatCurrency(totalCollected)}</p>
           </div>
         </div>
       )}
 
       {/* Quotation Orders Pressed Alert */}
       {!isInvoice && pressedOrdersCount > 0 && (
-        <div className="mb-6 bg-amber-50 border border-amber-300 p-4 rounded flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="text-amber-700" size={20} />
-            <div>
-              <p className="text-xs font-bold text-amber-900 uppercase tracking-wider">
-                Orders Pressed / Awaiting Restock: {pressedOrdersCount} Quotation{pressedOrdersCount > 1 ? 's' : ''}
-              </p>
-              <p className="text-xs text-amber-800">
-                These quotations exceed current physical stock. Receiving shipments in the Stock Catalog will automatically mark them ready.
-              </p>
-            </div>
+        <div className="mb-6 card border-l-4 border-l-[#C62828] p-4 flex items-center justify-between bg-white">
+          <div>
+            <p className="text-xs font-bold text-[#111111] uppercase tracking-wider">
+              Orders Pressed / Awaiting Stock: {pressedOrdersCount} Quotation{pressedOrdersCount > 1 ? 's' : ''}
+            </p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              These quotations exceed current physical stock. Receiving shipments in the Stock Catalog will automatically mark them ready.
+            </p>
           </div>
           <button
             onClick={() => setStatusFilter(statusFilter === 'ORDER_PRESSED' ? 'ALL' : 'ORDER_PRESSED')}
-            className="text-xs font-bold text-amber-900 border border-amber-400 bg-white px-3 py-1.5 rounded hover:bg-amber-100"
+            className="text-xs font-bold text-[#111111] border border-[#E5E5E5] bg-white px-3 py-1.5 hover:bg-[#F8F9FA] transition-colors"
           >
             {statusFilter === 'ORDER_PRESSED' ? 'Show All' : 'Filter Pressed Orders'}
           </button>
@@ -181,19 +176,19 @@ export function DocumentList({ type }: { type: DocType }) {
           <div className="flex items-center gap-1.5 text-xs">
             <button
               onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-1.5 rounded font-semibold ${statusFilter === 'ALL' ? 'bg-[#111111] text-white' : 'bg-gray-100 text-gray-600'}`}
+              className={`px-3 py-1.5 font-semibold border ${statusFilter === 'ALL' ? 'bg-[#111111] text-white border-[#111111]' : 'bg-white text-[#111111] border-[#E5E5E5]'}`}
             >
               All ({docs.length})
             </button>
             <button
               onClick={() => setStatusFilter('ORDER_PRESSED')}
-              className={`px-3 py-1.5 rounded font-semibold ${statusFilter === 'ORDER_PRESSED' ? 'bg-amber-700 text-white' : 'bg-amber-50 text-amber-800 border border-amber-200'}`}
+              className={`px-3 py-1.5 font-semibold border ${statusFilter === 'ORDER_PRESSED' ? 'bg-[#C62828] text-white border-[#C62828]' : 'bg-white text-[#C62828] border-[#C62828]'}`}
             >
               Orders Pressed ({pressedOrdersCount})
             </button>
             <button
               onClick={() => setStatusFilter('STOCK_READY')}
-              className={`px-3 py-1.5 rounded font-semibold ${statusFilter === 'STOCK_READY' ? 'bg-emerald-700 text-white' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`}
+              className={`px-3 py-1.5 font-semibold border ${statusFilter === 'STOCK_READY' ? 'bg-[#111111] text-white border-[#111111]' : 'bg-white text-[#111111] border-[#E5E5E5]'}`}
             >
               Stock Ready ({stockReadyCount})
             </button>

@@ -367,7 +367,7 @@ export default function ReceiveStockPage() {
                           <option value="">Select Variant (Color & Size)...</option>
                           {variants.map(v => (
                             <option key={v.id} value={v.id}>
-                              {v.product.name} — {v.color} / {v.size} (Current: {v.stockQty})
+                              {v.product.name} - {v.color} / {v.size} (Current: {v.stockQty})
                             </option>
                           ))}
                         </select>
@@ -457,7 +457,7 @@ export default function ReceiveStockPage() {
               >
                 {variants.map(v => (
                   <option key={v.id} value={v.id}>
-                    {v.product.name} — {v.color} / {v.size} (Current: {v.stockQty} in stock)
+                    {v.product.name} - {v.color} / {v.size} (Current: {v.stockQty} in stock)
                   </option>
                 ))}
               </select>

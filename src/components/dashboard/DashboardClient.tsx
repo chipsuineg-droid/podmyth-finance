@@ -145,7 +145,7 @@ export function DashboardClient({ initialAnalytics, stats, lowStockVariants, rec
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#C62828] animate-ping" />
               <p className="text-xs font-black uppercase tracking-wider text-white">
-                PostgreSQL Database Connected — Unpopulated State
+                PostgreSQL Database Connected: Unpopulated State
               </p>
             </div>
             <p className="text-xs text-gray-300 mt-1">
@@ -215,14 +215,14 @@ export function DashboardClient({ initialAnalytics, stats, lowStockVariants, rec
         </div>
 
         {/* Metric 4: Total Recorded Assets */}
-        <div className="card border-l-4 border-l-green-600 p-5 bg-white">
+        <div className="card border-l-4 border-l-[#111111] p-5 bg-white">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
               Total Recorded Assets
             </span>
-            <span className="text-[10px] font-bold text-green-700 uppercase">BALANCED</span>
+            <span className="text-[10px] font-bold text-[#111111] uppercase">BALANCED</span>
           </div>
-          <p className="text-3xl font-black text-green-800 tabular-nums tracking-tight">
+          <p className="text-3xl font-black text-[#111111] tabular-nums tracking-tight">
             {formatCurrency(totalAssets)}
           </p>
           <p className="text-[11px] text-gray-500 mt-2 font-medium">
@@ -291,7 +291,7 @@ export function DashboardClient({ initialAnalytics, stats, lowStockVariants, rec
           )}
 
           <div className="flex items-center justify-between text-[10px] text-gray-500 font-medium">
-            <span>Peak day: {dailySales.length > 0 ? dailySales.reduce((max, d) => d.revenue > max.revenue ? d : max, dailySales[0]).label : '—'} ({formatCurrency(maxDayRevenue > 1 ? maxDayRevenue : 0)})</span>
+            <span>Peak day: {dailySales.length > 0 ? dailySales.reduce((max, d) => d.revenue > max.revenue ? d : max, dailySales[0]).label : 'None'} ({formatCurrency(maxDayRevenue > 1 ? maxDayRevenue : 0)})</span>
             <span className="font-mono text-gray-600">Total days recorded: {dailySales.length}</span>
           </div>
         </div>
@@ -389,14 +389,14 @@ export function DashboardClient({ initialAnalytics, stats, lowStockVariants, rec
                     <td className="py-3 px-4 text-right font-bold tabular-nums text-[#111111]">
                       {formatCurrency(inv.totalSellPrice)}
                     </td>
-                    <td className="py-3 px-4 text-right font-semibold tabular-nums text-green-700">
+                    <td className="py-3 px-4 text-right font-semibold tabular-nums text-[#111111]">
                       {formatCurrency(inv.netProfit)}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span className={`inline-block text-[10px] font-bold uppercase px-2 py-0.5 border ${
-                        inv.status === 'PAID' ? 'bg-green-50 text-green-800 border-green-200' :
-                        inv.status === 'DELIVERED_PENDING' ? 'bg-amber-50 text-amber-800 border-amber-200' :
-                        'bg-gray-50 text-gray-700 border-gray-200'
+                        inv.status === 'PAID' ? 'bg-[#111111] text-white border-[#111111]' :
+                        inv.status === 'DELIVERED_PENDING' ? 'bg-white text-[#C62828] border-[#C62828]' :
+                        'bg-white text-[#111111] border-[#E5E5E5]'
                       }`}>
                         {inv.status === 'DELIVERED_PENDING' ? 'Pending' : inv.status}
                       </span>
@@ -415,7 +415,7 @@ export function DashboardClient({ initialAnalytics, stats, lowStockVariants, rec
               Stock Replenishment Alerts (≤ 2 Units)
             </h2>
             <Link href="/inventory" className="text-xs text-[#C62828] font-bold hover:underline">
-              Catalog →
+              Catalog &rarr;
             </Link>
           </div>
 
@@ -427,7 +427,7 @@ export function DashboardClient({ initialAnalytics, stats, lowStockVariants, rec
                   <p className="text-[11px] text-gray-500 mt-0.5">{v.color} • Size {v.size}</p>
                 </div>
                 <div className="text-right">
-                  <span className={`text-sm font-black tabular-nums ${v.stockQty <= 1 ? 'text-[#C62828]' : 'text-amber-700'}`}>
+                  <span className={`text-sm font-black tabular-nums ${v.stockQty <= 1 ? 'text-[#C62828]' : 'text-[#111111]'}`}>
                     {v.stockQty} unit{v.stockQty === 1 ? '' : 's'}
                   </span>
                   <p className="text-[9px] font-bold uppercase text-gray-400">Available</p>

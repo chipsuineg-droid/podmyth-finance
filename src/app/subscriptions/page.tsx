@@ -81,15 +81,15 @@ export default function SubscriptionsPage() {
                       <td key={mo} className="py-3 px-4 text-center">
                         <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 border ${
                           isPaid
-                            ? 'bg-green-50 text-green-800 border-green-200'
-                            : 'bg-amber-50 text-amber-800 border-amber-200'
+                            ? 'bg-[#111111] text-white border-[#111111]'
+                            : 'bg-white text-[#C62828] border-[#C62828]'
                         }`}>
                           {isPaid ? '$10.00' : 'Pending'}
                         </span>
                       </td>
                     )
                   })}
-                  <td className="py-3 px-4 text-right font-black tabular-nums text-green-800">
+                  <td className="py-3 px-4 text-right font-black tabular-nums text-[#111111]">
                     {formatCurrency(m.totalPaid)}
                   </td>
                 </tr>
