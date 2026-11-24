@@ -172,12 +172,12 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen w-64 bg-white border-r border-[#E5E5E5] z-30">
+      <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen w-64 bg-white border-r border-[#E5E5E5] z-30 print:hidden">
         <NavContent />
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-[#E5E5E5] flex items-center justify-between px-4 py-3">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-[#E5E5E5] flex items-center justify-between px-4 py-3 print:hidden">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-[#C62828] flex items-center justify-center font-black text-white text-[10px]">
             PM
@@ -192,15 +192,15 @@ export function Sidebar() {
       {/* Mobile Drawer */}
       {mobileOpen && (
         <>
-          <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setMobileOpen(false)} />
-          <aside className="lg:hidden fixed left-0 top-0 h-screen w-72 bg-white z-50 shadow-xl">
+          <div className="lg:hidden fixed inset-0 bg-black/40 z-40 print:hidden" onClick={() => setMobileOpen(false)} />
+          <aside className="lg:hidden fixed left-0 top-0 h-screen w-72 bg-white z-50 shadow-xl print:hidden">
             <NavContent />
           </aside>
         </>
       )}
 
       {/* Mobile top spacing */}
-      <div className="lg:hidden h-14" />
+      <div className="lg:hidden h-14 print:hidden" />
     </>
   )
 }

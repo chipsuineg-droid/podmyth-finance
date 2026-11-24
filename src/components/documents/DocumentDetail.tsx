@@ -8,7 +8,7 @@ import { toast } from '@/components/ui/Toaster'
 import {
   Printer, ArrowRightCircle, CheckCircle, XCircle, AlertTriangle,
   TrendingUp, TrendingDown, DollarSign, Calendar, MapPin, Phone,
-  ArrowLeft, CreditCard, ShieldCheck, Lock
+  ArrowLeft, CreditCard, ShieldCheck, Lock, Download, Share2, Loader2
 } from 'lucide-react'
 
 interface DocumentItem {
@@ -69,6 +69,7 @@ export function DocumentDetail({ id }: { id: string }) {
   const [payDate, setPayDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [payNotes, setPayNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const [viewMode, setViewMode] = useState<'internal' | 'client'>('internal')
 
   const fetchDoc = useCallback(async () => {
@@ -187,6 +188,107 @@ export function DocumentDetail({ id }: { id: string }) {
     }
   }
 
+  const handleDownload = async () => {
+    if (!doc) return
+    try {
+      setDownloading(true)
+      toast('Generating PDF...', 'info')
+      if (viewMode !== 'client') {
+        setViewMode('client')
+        await new Promise((resolve) => setTimeout(resolve, 250))
+      }
+      const el = document.getElementById('printable-document')
+      if (!el) {
+        toast('Document view not ready', 'error')
+        return
+      }
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#FFFFFF',
+      })
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      })
+      const imgWidth = 210
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, 297))
+      pdf.save(`${doc.refNumber}.pdf`)
+      toast('PDF downloaded successfully!', 'success')
+    } catch (err: any) {
+      console.error(err)
+      toast('Failed to download PDF', 'error')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  const handleShare = async () => {
+    if (!doc) return
+    try {
+      setDownloading(true)
+      toast('Preparing PDF to share...', 'info')
+      if (viewMode !== 'client') {
+        setViewMode('client')
+        await new Promise((resolve) => setTimeout(resolve, 250))
+      }
+      const el = document.getElementById('printable-document')
+      if (!el) {
+        toast('Document view not ready', 'error')
+        return
+      }
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#FFFFFF',
+      })
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      })
+      const imgWidth = 210
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, 297))
+      const blob = pdf.output('blob')
+      const fileName = `${doc.refNumber}.pdf`
+      const file = new File([blob], fileName, { type: 'application/pdf' })
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `${doc.refNumber} - PodMyth Group`,
+          text: `PodMyth Group ${isInvoice ? 'Invoice' : 'Quotation'} for ${doc.client.name}`,
+        })
+      } else if (navigator.share) {
+        await navigator.share({
+          title: `${doc.refNumber} - PodMyth Group`,
+          url: window.location.href,
+        })
+      } else {
+        pdf.save(fileName)
+        toast('Shared via download', 'success')
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        console.error(err)
+        toast('Unable to share document', 'error')
+      }
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   const handlePrint = () => {
     setViewMode('client')
     setTimeout(() => {
@@ -288,11 +390,32 @@ export function DocumentDetail({ id }: { id: string }) {
           )}
 
           <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="btn-primary text-xs flex items-center gap-1.5"
+            title="Download PDF directly to your device"
+          >
+            {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            Download PDF
+          </button>
+
+          <button
+            onClick={handleShare}
+            disabled={downloading}
+            className="btn-secondary text-xs flex items-center gap-1.5"
+            title="Share document to WhatsApp, email or other apps"
+          >
+            <Share2 size={14} />
+            Share
+          </button>
+
+          <button
             onClick={handlePrint}
             className="btn-secondary text-xs flex items-center gap-1.5"
+            title="Open print preview"
           >
             <Printer size={14} />
-            Print / PDF
+            Print
           </button>
 
           <button
@@ -507,163 +630,170 @@ export function DocumentDetail({ id }: { id: string }) {
       {/* ────────────────────────────────────────────────────────────────────────── */}
       {/* CLIENT-FACING PRINT / PDF VIEW (Exact Brand Specs) */}
       {/* ────────────────────────────────────────────────────────────────────────── */}
-      <div className={`bg-white border border-[#E5E5E5] p-10 lg:p-12 shadow-sm ${viewMode === 'internal' ? 'hidden' : 'block'} print:block print:border-0 print:p-0`} style={{ fontFamily: "'Helvetica Neue', Inter, sans-serif" }}>
-
-        {/* SECTION 1 — Header */}
-        <div className="flex items-start justify-between">
-          {/* Left: Brand */}
-          <div>
-            <div className="text-[28px] font-black tracking-wider leading-none">
-              <span className="text-[#111111]">POD</span><span className="text-[#C62828]">MYTH</span><span className="text-[#111111]"> GROUP</span>
+      <div
+        id="printable-document"
+        className={`bg-white border border-[#E5E5E5] p-10 lg:p-12 shadow-sm ${
+          viewMode === 'internal' ? 'hidden' : 'flex'
+        } flex-col justify-between min-h-[1050px] print:flex print:border-0 print:p-0 print:min-h-0 print:h-[297mm]`}
+        style={{ fontFamily: "'Helvetica Neue', Inter, sans-serif" }}
+      >
+        <div className="flex-1 flex flex-col justify-start">
+          {/* SECTION 1 — Header */}
+          <div className="flex items-start justify-between">
+            {/* Left: Brand */}
+            <div>
+              <div className="text-[28px] font-black tracking-wider leading-none">
+                <span className="text-[#111111]">POD</span><span className="text-[#C62828]">MYTH</span><span className="text-[#111111]"> GROUP</span>
+              </div>
+              <p className="text-[10px] font-black tracking-[3px] text-[#C62828] uppercase mt-1">
+                PODMERCH SUBSIDIARY
+              </p>
+              <div className="mt-3 space-y-0.5">
+                <p className="text-[10px] text-[#555555]">Call: +263 784 881 010</p>
+                <p className="text-[10px] text-[#555555]">Email: sales@podmyth.co.zw</p>
+                <p className="text-[10px] text-[#555555]">Web: www.podmyth.co.zw</p>
+              </div>
             </div>
-            <p className="text-[10px] font-black tracking-[3px] text-[#C62828] uppercase mt-1">
-              PODMERCH SUBSIDIARY
-            </p>
-            <div className="mt-3 space-y-0.5">
-              <p className="text-[10px] text-[#555555]">Call: +263 784 881 010</p>
-              <p className="text-[10px] text-[#555555]">Email: sales@podmyth.co.zw</p>
-              <p className="text-[10px] text-[#555555]">Web: www.podmyth.co.zw</p>
+
+            {/* Right: Document metadata */}
+            <div className="text-right">
+              <h2 className="text-[22px] font-black text-[#111111] tracking-[4.5px] uppercase">
+                {isInvoice ? 'INVOICE' : 'QUOTATION'}
+              </h2>
+              <div className="w-[38px] h-[2px] bg-[#C62828] ml-auto mt-1" />
+              <div className="mt-3 space-y-1">
+                <div className="text-[11px] text-[#555555]">
+                  {isInvoice ? 'Invoice No.' : 'Quotation No.'}{' '}
+                  <span className="font-mono font-bold text-[#111111]">{doc.refNumber}</span>
+                </div>
+                <div className="text-[11px] text-[#555555]">
+                  Date: <span className="font-bold text-[#111111]">{format(new Date(doc.issueDate), 'd MMMM yyyy')}</span>
+                </div>
+                <div className="text-[11px] text-[#555555]">
+                  {isInvoice ? 'Currency: USD ($)' : 'Valid For: 14 Days'}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right: Document metadata */}
-          <div className="text-right">
-            <h2 className="text-[22px] font-black text-[#111111] tracking-[4.5px] uppercase">
-              {isInvoice ? 'INVOICE' : 'QUOTATION'}
-            </h2>
-            <div className="w-[38px] h-[2px] bg-[#C62828] ml-auto mt-1" />
-            <div className="mt-3 space-y-1">
-              <div className="text-[11px] text-[#555555]">
-                {isInvoice ? 'Invoice No.' : 'Quotation No.'}{' '}
-                <span className="font-mono font-bold text-[#111111]">{doc.refNumber}</span>
-              </div>
-              <div className="text-[11px] text-[#555555]">
-                Date: <span className="font-bold text-[#111111]">{format(new Date(doc.issueDate), 'd MMMM yyyy')}</span>
-              </div>
-              <div className="text-[11px] text-[#555555]">
-                {isInvoice ? 'Currency: USD ($)' : 'Valid For: 14 Days'}
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* SECTION 2 — Hairline divider */}
+          <div className="h-px bg-[#E2E2E2] my-6" />
 
-        {/* SECTION 2 — Hairline divider */}
-        <div className="h-px bg-[#E2E2E2] my-6" />
-
-        {/* SECTION 3 — Billed To / Prepared For */}
-        <div className="mb-6">
-          <p className="text-[10px] font-black text-[#C62828] tracking-[2px] uppercase mb-2">
-            {isInvoice ? 'BILLED TO' : 'PREPARED FOR'}
-          </p>
-          <p className="text-[14px] font-black text-[#111111]">{doc.client.name}</p>
-          {doc.client.phone && (
-            <p className="text-[11px] text-[#555555] mt-0.5">{doc.client.phone}</p>
-          )}
-          {doc.client.city && (
-            <p className="text-[11px] text-[#555555]">
-              {doc.client.city}{doc.client.deliveryZone ? `, ${doc.client.deliveryZone}` : ''}
+          {/* SECTION 3 — Billed To / Prepared For */}
+          <div className="mb-6">
+            <p className="text-[10px] font-black text-[#C62828] tracking-[2px] uppercase mb-2">
+              {isInvoice ? 'BILLED TO' : 'PREPARED FOR'}
             </p>
-          )}
-        </div>
+            <p className="text-[14px] font-black text-[#111111]">{doc.client.name}</p>
+            {doc.client.phone && (
+              <p className="text-[11px] text-[#555555] mt-0.5">{doc.client.phone}</p>
+            )}
+            {doc.client.city && (
+              <p className="text-[11px] text-[#555555]">
+                {doc.client.city}{doc.client.deliveryZone ? `, ${doc.client.deliveryZone}` : ''}
+              </p>
+            )}
+          </div>
 
-        {/* SECTION 4 — Line Items Table */}
-        <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
-          <thead>
-            <tr style={{ borderTop: '1.5px solid #111111', borderBottom: '1.5px solid #111111' }}>
-              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-left" style={{ width: '40px', whiteSpace: 'nowrap' }}>#</th>
-              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 px-2 text-left" style={{ whiteSpace: 'nowrap' }}>DESCRIPTION</th>
-              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-center" style={{ width: '64px', whiteSpace: 'nowrap' }}>QTY</th>
-              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-right" style={{ width: '112px', whiteSpace: 'nowrap' }}>UNIT PRICE</th>
-              <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-right" style={{ width: '128px', whiteSpace: 'nowrap' }}>AMOUNT</th>
-            </tr>
-          </thead>
-          <tbody>
-            {doc.items.map((it, idx) => (
-              <tr key={it.id} style={{ borderBottom: '1px solid #EBEBEB' }}>
-                <td className="py-3 text-[12px] text-[#111111] font-mono tabular-nums">{idx + 1}</td>
-                <td className="py-3 px-2 text-[12px] text-[#111111]">
-                  <div className="font-semibold">{it.description}</div>
-                  {it.notes && (
-                    <div className="text-[11px] text-[#555555] mt-0.5">{it.notes}</div>
-                  )}
-                </td>
-                <td className="py-3 text-[12px] text-[#111111] text-center font-bold tabular-nums">{it.qty}</td>
-                <td className="py-3 text-[12px] text-[#111111] text-right tabular-nums">{formatCurrency(it.sellingPrice)}</td>
-                <td className="py-3 text-[12px] text-[#111111] text-right font-bold tabular-nums">{formatCurrency(it.lineTotal)}</td>
+          {/* SECTION 4 — Line Items Table */}
+          <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
+            <thead>
+              <tr style={{ borderTop: '1.5px solid #111111', borderBottom: '1.5px solid #111111' }}>
+                <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-left" style={{ width: '40px', whiteSpace: 'nowrap' }}>#</th>
+                <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 px-2 text-left" style={{ whiteSpace: 'nowrap' }}>DESCRIPTION</th>
+                <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-center" style={{ width: '64px', whiteSpace: 'nowrap' }}>QTY</th>
+                <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-right" style={{ width: '112px', whiteSpace: 'nowrap' }}>UNIT PRICE</th>
+                <th className="bg-white text-[#111111] text-[11px] font-black uppercase tracking-wider py-2.5 text-right" style={{ width: '128px', whiteSpace: 'nowrap' }}>AMOUNT</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {doc.items.map((it, idx) => (
+                <tr key={it.id} style={{ borderBottom: '1px solid #EBEBEB' }}>
+                  <td className="py-3 text-[12px] text-[#111111] font-mono tabular-nums">{idx + 1}</td>
+                  <td className="py-3 px-2 text-[12px] text-[#111111]">
+                    <div className="font-semibold">{it.description}</div>
+                    {it.notes && (
+                      <div className="text-[11px] text-[#555555] mt-0.5">{it.notes}</div>
+                    )}
+                  </td>
+                  <td className="py-3 text-[12px] text-[#111111] text-center font-bold tabular-nums">{it.qty}</td>
+                  <td className="py-3 text-[12px] text-[#111111] text-right tabular-nums">{formatCurrency(it.sellingPrice)}</td>
+                  <td className="py-3 text-[12px] text-[#111111] text-right font-bold tabular-nums">{formatCurrency(it.lineTotal)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-        {/* SECTION 5 — EcoCash + Totals Split */}
-        <div className="flex mt-6 gap-6">
-          {/* Left 58%: EcoCash instructions */}
-          <div className="pl-4" style={{ width: '58%', borderLeft: '2px solid #C62828' }}>
-            <p className="text-[10px] font-black text-[#111111] tracking-wider uppercase mb-2">
-              ECOCASH PAYMENT INSTRUCTIONS
-            </p>
-            <p className="text-[11px] text-[#555555] leading-relaxed mb-3">
-              For Ecocash Payments please kindly use this code and send the proof of payment.
-            </p>
-            <span className="font-mono text-[13px] font-bold text-[#111111] bg-[#F5F5F5] px-3 py-1.5 inline-block mb-2">
-              *153*2*2*028776*Amount#
-            </span>
-            <p className="text-[12px] font-black text-[#111111]">PodMyth Group</p>
+          {/* SECTION 5 — EcoCash + Totals Split */}
+          <div className="flex mt-6 gap-6">
+            {/* Left 58%: EcoCash instructions */}
+            <div className="pl-4" style={{ width: '58%', borderLeft: '2px solid #C62828' }}>
+              <p className="text-[10px] font-black text-[#111111] tracking-wider uppercase mb-2">
+                ECOCASH PAYMENT INSTRUCTIONS
+              </p>
+              <p className="text-[11px] text-[#555555] leading-relaxed mb-3">
+                For Ecocash Payments please kindly use this code and send the proof of payment.
+              </p>
+              <span className="font-mono text-[13px] font-bold text-[#111111] bg-[#F5F5F5] px-3 py-1.5 inline-block mb-2">
+                *153*2*2*028776*Amount#
+              </span>
+              <p className="text-[12px] font-black text-[#111111]">PodMyth Group</p>
+            </div>
+
+            {/* Right 42%: Totals */}
+            <div className="pl-6" style={{ width: '42%' }}>
+              <div className="flex justify-between text-[12px] py-1 mb-1">
+                <span className="text-[#555555]">Subtotal</span>
+                <span className="font-bold text-[#111111] tabular-nums">{formatCurrency(doc.totalSellPrice)}</span>
+              </div>
+              <div className="flex justify-between text-[12px] py-1 mb-3">
+                <span className="text-[#555555]">Delivery</span>
+                <span className="font-bold text-[#111111]">Included</span>
+              </div>
+              <div style={{ borderTop: '1.5px solid #111111', borderBottom: '1.5px solid #111111' }} className="py-2">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-[14px] font-black text-[#111111]">
+                    {isInvoice ? 'Total Due' : 'Quoted Total'}
+                  </span>
+                  <span className="text-[14px] font-black text-[#C62828] tabular-nums">
+                    {formatCurrency(doc.totalSellPrice)}
+                  </span>
+                </div>
+              </div>
+              {isInvoice && doc.amountPaid > 0 && (
+                <div className="mt-2 space-y-1">
+                  <div className="flex justify-between text-[12px]">
+                    <span className="text-[#555555]">Amount Paid</span>
+                    <span className="text-[#111111] font-bold tabular-nums">-{formatCurrency(doc.amountPaid)}</span>
+                  </div>
+                  <div className="flex justify-between text-[12px]">
+                    <span className="font-black text-[#111111]">Balance Due</span>
+                    <span className="font-black text-[#C62828] tabular-nums">{formatCurrency(outstanding)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Right 42%: Totals */}
-          <div className="pl-6" style={{ width: '42%' }}>
-            <div className="flex justify-between text-[12px] py-1 mb-1">
-              <span className="text-[#555555]">Subtotal</span>
-              <span className="font-bold text-[#111111] tabular-nums">{formatCurrency(doc.totalSellPrice)}</span>
-            </div>
-            <div className="flex justify-between text-[12px] py-1 mb-3">
-              <span className="text-[#555555]">Delivery</span>
-              <span className="font-bold text-[#111111]">Included</span>
-            </div>
-            <div style={{ borderTop: '1.5px solid #111111', borderBottom: '1.5px solid #111111' }} className="py-2">
-              <div className="flex justify-between items-baseline">
-                <span className="text-[14px] font-black text-[#111111]">
-                  {isInvoice ? 'Total Due' : 'Quoted Total'}
-                </span>
-                <span className="text-[14px] font-black text-[#C62828] tabular-nums">
-                  {formatCurrency(doc.totalSellPrice)}
-                </span>
-              </div>
-            </div>
-            {isInvoice && doc.amountPaid > 0 && (
-              <div className="mt-2 space-y-1">
-                <div className="flex justify-between text-[12px]">
-                  <span className="text-[#555555]">Amount Paid</span>
-                  <span className="text-[#111111] font-bold tabular-nums">-{formatCurrency(doc.amountPaid)}</span>
-                </div>
-                <div className="flex justify-between text-[12px]">
-                  <span className="font-black text-[#111111]">Balance Due</span>
-                  <span className="font-black text-[#C62828] tabular-nums">{formatCurrency(outstanding)}</span>
-                </div>
-              </div>
+          {/* SECTION 6 — Terms & Policies Strip */}
+          <div className="mt-6 py-4 px-5 bg-[#FAFAFA]" style={{ borderTop: '1px solid #E2E2E2', borderBottom: '1px solid #E2E2E2' }}>
+            <p className="text-[10px] font-black text-[#111111] tracking-wider uppercase mb-2">TERMS & POLICIES</p>
+            <p className="text-[10px] font-bold text-[#111111]">Payment Terms:</p>
+            <p className="text-[11px] text-[#555555] leading-relaxed" style={{ textAlign: 'justify' }}>
+              Payment is strictly due after delivery of services / receipt of items.
+            </p>
+            <p className="text-[10px] font-bold text-[#111111] mt-2">Return Policy:</p>
+            <p className="text-[11px] text-[#555555] leading-relaxed" style={{ textAlign: 'justify' }}>
+              Please make sure you order and verify quotations before your order is confirmed.
+            </p>
+            {doc.notes && (
+              <p className="text-[11px] text-[#555555] mt-2 italic">{doc.notes}</p>
             )}
           </div>
         </div>
 
-        {/* SECTION 6 — Terms & Policies Strip */}
-        <div className="mt-6 py-4 px-5 bg-[#FAFAFA]" style={{ borderTop: '1px solid #E2E2E2', borderBottom: '1px solid #E2E2E2' }}>
-          <p className="text-[10px] font-black text-[#111111] tracking-wider uppercase mb-2">TERMS & POLICIES</p>
-          <p className="text-[10px] font-bold text-[#111111]">Payment Terms:</p>
-          <p className="text-[11px] text-[#555555] leading-relaxed" style={{ textAlign: 'justify' }}>
-            Payment is strictly due after delivery of services / receipt of items.
-          </p>
-          <p className="text-[10px] font-bold text-[#111111] mt-2">Return Policy:</p>
-          <p className="text-[11px] text-[#555555] leading-relaxed" style={{ textAlign: 'justify' }}>
-            Please make sure you order and verify quotations before your order is confirmed.
-          </p>
-          {doc.notes && (
-            <p className="text-[11px] text-[#555555] mt-2 italic">{doc.notes}</p>
-          )}
-        </div>
-
-        {/* SECTION 7 — Corporate Footer */}
-        <div className="mt-6 pt-4 flex justify-between items-start" style={{ borderTop: '1.5px solid #111111' }}>
+        {/* SECTION 7 — Corporate Footer (Anchored to bottom of A4) */}
+        <div className="mt-8 pt-4 flex justify-between items-start" style={{ borderTop: '1.5px solid #111111' }}>
           {/* Left: company info */}
           <div>
             <p className="text-[10px] font-black text-[#111111] uppercase tracking-wider">

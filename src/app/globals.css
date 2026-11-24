@@ -122,20 +122,25 @@ td.numeric,
 @media print {
   @page {
     size: A4 portrait;
-    margin: 12mm 10mm 12mm 10mm;
+    margin: 10mm;
   }
-  nav, aside, header, .no-print {
+  nav, aside, header, .no-print, button, [role="navigation"], .fixed {
     display: none !important;
   }
-  body {
+  body, html {
     background: white !important;
     color: black !important;
     font-size: 11pt;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
   }
   main {
     padding: 0 !important;
     margin: 0 !important;
     max-width: 100% !important;
+    overflow: visible !important;
   }
   table {
     page-break-inside: auto;

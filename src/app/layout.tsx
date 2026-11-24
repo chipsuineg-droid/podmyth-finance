@@ -12,10 +12,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <div className="flex h-screen overflow-hidden bg-white">
+        <div className="flex h-screen overflow-hidden bg-white print:h-auto print:overflow-visible">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto lg:ml-64">
-            <div className="min-h-screen">{children}</div>
+          <main className="flex-1 overflow-y-auto lg:ml-64 print:ml-0 print:overflow-visible">
+            <div className="min-h-screen print:min-h-0">{children}</div>
           </main>
         </div>
         <Toaster />
