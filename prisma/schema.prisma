@@ -89,7 +89,7 @@ model Document {
   profitMargin   Decimal        @default(0)
   amountPaid     Decimal        @default(0)
   notes          String?
-  terms          String         @default("Payment Terms: Payment is strictly due after delivery of services / receipt of items.")
+  terms          String         @default("We accept payments after delivery of service, but sometimes a deposit may be required before processing of your order.")
   sourceQuoteId  String?
   payments       Payment[]
   createdAt      DateTime       @default(now())

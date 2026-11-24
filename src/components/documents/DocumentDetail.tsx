@@ -780,7 +780,7 @@ export function DocumentDetail({ id }: { id: string }) {
             <p className="text-[10px] font-black text-[#111111] tracking-wider uppercase mb-2">TERMS & POLICIES</p>
             <p className="text-[10px] font-bold text-[#111111]">Payment Terms:</p>
             <p className="text-[11px] text-[#555555] leading-relaxed" style={{ textAlign: 'justify' }}>
-              Payment is strictly due after delivery of services / receipt of items.
+              We accept payments after delivery of service, but sometimes a deposit may be required before processing of your order.
             </p>
             <p className="text-[10px] font-bold text-[#111111] mt-2">Return Policy:</p>
             <p className="text-[11px] text-[#555555] leading-relaxed" style={{ textAlign: 'justify' }}>

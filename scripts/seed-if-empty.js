@@ -19,6 +19,14 @@ async function main() {
     } else {
       console.log(`[Seed] Database already contains ${productCount} products and ${documentCount} documents. Preserving active transaction records.`)
     }
+
+    // Ensure all existing quotations and documents use the updated payment terms
+    const updatedCount = await prisma.document.updateMany({
+      data: {
+        terms: 'We accept payments after delivery of service, but sometimes a deposit may be required before processing of your order.'
+      }
+    }).catch(() => ({ count: 0 }))
+    console.log(`[Terms Update] Updated payment terms on ${updatedCount.count} documents.`)
   } catch (err) {
     console.error('[Seed Error]:', err.message)
   } finally {
