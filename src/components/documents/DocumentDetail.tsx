@@ -637,7 +637,7 @@ export function DocumentDetail({ id }: { id: string }) {
         } flex-col justify-between min-h-[1050px] print:flex print:border-0 print:p-0 print:min-h-0 print:h-[297mm]`}
         style={{ fontFamily: "'Helvetica Neue', Inter, sans-serif" }}
       >
-        <div className="flex-1 flex flex-col justify-start">
+        <div className="flex-1">
           {/* SECTION 1 — Header */}
           <div className="flex items-start justify-between">
             {/* Left: Brand */}
@@ -790,7 +790,7 @@ export function DocumentDetail({ id }: { id: string }) {
               <p className="text-[11px] text-[#555555] mt-2 italic">{doc.notes}</p>
             )}
           </div>
-        </div>
+        </div>{/* END flex-1 content wrapper */}
 
         {/* SECTION 7 — Corporate Footer (Anchored to bottom of A4) */}
         <div className="mt-8 pt-4 flex justify-between items-start" style={{ borderTop: '1.5px solid #111111' }}>
