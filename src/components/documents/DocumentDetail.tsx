@@ -219,7 +219,8 @@ export function DocumentDetail({ id }: { id: string }) {
       const imgWidth = 210
       const imgHeight = (canvas.height * imgWidth) / canvas.width
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, 297))
-      pdf.save(`${doc.refNumber}.pdf`)
+      const safeName = doc.client.name.replace(/[/\\?%*:|"<>]/g, '-').trim()
+      pdf.save(`${safeName} - ${doc.refNumber}.pdf`)
       toast('PDF downloaded successfully!', 'success')
     } catch (err: any) {
       console.error(err)
@@ -261,7 +262,8 @@ export function DocumentDetail({ id }: { id: string }) {
       const imgHeight = (canvas.height * imgWidth) / canvas.width
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, 297))
       const blob = pdf.output('blob')
-      const fileName = `${doc.refNumber}.pdf`
+      const safeName = doc.client.name.replace(/[/\\?%*:|"<>]/g, '-').trim()
+      const fileName = `${safeName} - ${doc.refNumber}.pdf`
       const file = new File([blob], fileName, { type: 'application/pdf' })
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
