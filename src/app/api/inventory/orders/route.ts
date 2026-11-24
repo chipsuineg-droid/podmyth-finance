@@ -112,22 +112,106 @@ export async function GET() {
         if (isOutOfStock) {
           quoteHasMissingStock = true
 
-          let productName = variant?.product?.name || item.description
-          let color = variant?.color || 'N/A'
-          let size = variant?.size || 'N/A'
-          const sku = variant?.sku || 'CUSTOM'
+          // Smart extraction of Product Name, Color, and Size from variant, description, and notes
+          let productName = variant?.product?.name || item.description.trim()
+          let color = variant && variant.color !== 'N/A' ? variant.color : 'N/A'
+          let size = variant && variant.size !== 'N/A' ? variant.size : 'N/A'
+          let sku = variant?.sku || 'CUSTOM'
           const estUnitBuyPrice = Number(variant?.defaultBuyPrice || item.buyingPrice || 0)
 
-          if (!variant) {
-            const parts = item.description.split(/[,-]/).map(p => p.trim())
-            if (parts.length >= 3) {
-              productName = parts[0]
-              color = parts[1]
-              size = parts[2]
-            } else if (parts.length === 2) {
-              productName = parts[0]
-              color = parts[1]
+          const notesText = (item.notes || '').trim()
+
+          // 1. Extract from notes if color or size is not set:
+          // Handles "Color: Petrol | Size: Medium" or "Petrol, Medium" or "Petrol / M"
+          if (notesText && (color === 'N/A' || size === 'N/A')) {
+            const colorLabelMatch = notesText.match(/color\s*:\s*([^|,;\n]+)/i)
+            const sizeLabelMatch = notesText.match(/size\s*:\s*([^|,;\n]+)/i)
+            if (colorLabelMatch && color === 'N/A') color = colorLabelMatch[1].trim()
+            if (sizeLabelMatch && size === 'N/A') size = sizeLabelMatch[1].trim()
+
+            if (color === 'N/A' && size === 'N/A') {
+              const noteParts = notesText.split(/[,/|–-]/).map(p => p.trim()).filter(Boolean)
+              if (noteParts.length >= 2) {
+                color = noteParts[0]
+                size = noteParts[1]
+              } else if (noteParts.length === 1) {
+                const single = noteParts[0]
+                const isKnownSize = /^(xxs|xs|s|m|l|xl|xxl|2xl|3xl|4xl|small|medium|large)$/i.test(single)
+                if (isKnownSize) size = single
+                else color = single
+              }
             }
+          }
+
+          // 2. Extract from description if still N/A:
+          // Handles "Tanc Core Set - Petrol (Medium)" or "Tanc Core Set – Charcoal / XS" or "Tanc Core Set, Petrol, Medium"
+          if (color === 'N/A' || size === 'N/A') {
+            const parenMatch = productName.match(/(.+?)\s*[-–]\s*(.+?)\s*\((.+?)\)/)
+            if (parenMatch) {
+              productName = parenMatch[1].trim()
+              if (color === 'N/A') color = parenMatch[2].trim()
+              if (size === 'N/A') size = parenMatch[3].trim()
+            } else {
+              const dashSlashMatch = productName.match(/(.+?)\s*[-–]\s*(.+?)\s*\/\s*(.+)/)
+              if (dashSlashMatch) {
+                productName = dashSlashMatch[1].trim()
+                if (color === 'N/A') color = dashSlashMatch[2].trim()
+                if (size === 'N/A') size = dashSlashMatch[3].trim()
+              } else {
+                const descParts = productName.split(/[,–-]/).map(p => p.trim()).filter(Boolean)
+                if (descParts.length >= 3) {
+                  productName = descParts[0]
+                  if (color === 'N/A') color = descParts[1]
+                  if (size === 'N/A') size = descParts[2]
+                } else if (descParts.length === 2) {
+                  productName = descParts[0]
+                  const isKnownSize = /^(xxs|xs|s|m|l|xl|xxl|2xl|3xl|4xl|small|medium|large)$/i.test(descParts[1])
+                  if (isKnownSize) {
+                    if (size === 'N/A') size = descParts[1]
+                  } else {
+                    if (color === 'N/A') color = descParts[1]
+                  }
+                }
+              }
+            }
+          }
+
+          // 3. Try to normalize product name against catalog
+          const matchedProd = allVariants.find(v => {
+            const vName = v.product.name.toLowerCase()
+            const pLower = productName.toLowerCase()
+            return pLower.includes(vName) || vName.includes(pLower) || (pLower.includes('tanc') && vName.includes('tanc'))
+          })
+          if (matchedProd) {
+            productName = matchedProd.product.name
+          }
+
+          // 4. Try to match SKU if color and size are known
+          if (sku === 'CUSTOM' && color !== 'N/A' && size !== 'N/A') {
+            const exactVariant = allVariants.find(v =>
+              v.product.name.toLowerCase() === productName.toLowerCase() &&
+              v.color.toLowerCase() === color.toLowerCase() &&
+              v.size.toLowerCase() === size.toLowerCase()
+            )
+            if (exactVariant) {
+              sku = exactVariant.sku
+            }
+          }
+
+          // Clean up formatting
+          if (color !== 'N/A') {
+            color = color.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+          }
+          if (size !== 'N/A') {
+            const sizeMap: Record<string, string> = {
+              'SMALL': 'S',
+              'MEDIUM': 'M',
+              'LARGE': 'L',
+              'EXTRA LARGE': 'XL',
+              'XXL': '2XL'
+            }
+            const sUpper = size.toUpperCase()
+            size = sizeMap[sUpper] || sUpper
           }
 
           const deficitUnits = Math.max(1, item.qty - currentStock)

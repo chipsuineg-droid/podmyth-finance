@@ -18,6 +18,9 @@ interface Client { id: string; name: string; phone?: string; city?: string }
 interface LineItem {
   tempId: string
   variantId: string | null
+  productName: string
+  color: string
+  size: string
   description: string
   notes: string
   qty: number
@@ -35,7 +38,18 @@ interface NewClientForm {
 }
 
 function newItem(): LineItem {
-  return { tempId: Math.random().toString(36).slice(2), variantId: null, description: '', notes: '', qty: 1, buyingPrice: 0, sellingPrice: 0 }
+  return {
+    tempId: Math.random().toString(36).slice(2),
+    variantId: null,
+    productName: '',
+    color: '',
+    size: '',
+    description: '',
+    notes: '',
+    qty: 1,
+    buyingPrice: 0,
+    sellingPrice: 0,
+  }
 }
 
 function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
@@ -88,10 +102,18 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
   }, [])
 
   const selectVariant = (tempId: string, variant: Variant) => {
+    const prodName = variant.product.name
+    const col = variant.color !== 'N/A' ? variant.color : ''
+    const sz = variant.size !== 'N/A' ? variant.size : ''
+    const formattedDesc = `${prodName}${col ? ` - ${col}` : ''}${sz ? ` (${sz})` : ''}`
+
     setItems(prev => prev.map(it => it.tempId === tempId ? {
       ...it,
       variantId: variant.id,
-      description: `${variant.product.name}${variant.color !== 'N/A' ? ` – ${variant.color}` : ''}${variant.size !== 'N/A' ? ` / ${variant.size}` : ''}`,
+      productName: prodName,
+      color: col,
+      size: sz,
+      description: formattedDesc,
       buyingPrice: variant.defaultBuyPrice,
       sellingPrice: variant.defaultSellPrice,
     } : it))
@@ -100,7 +122,18 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
   }
 
   const updateItem = (tempId: string, field: keyof LineItem, value: any) => {
-    setItems(prev => prev.map(it => it.tempId === tempId ? { ...it, [field]: value } : it))
+    setItems(prev => prev.map(it => {
+      if (it.tempId !== tempId) return it
+      const updated = { ...it, [field]: value }
+
+      if (field === 'productName' || field === 'color' || field === 'size') {
+        const pName = field === 'productName' ? value : it.productName
+        const col = field === 'color' ? value : it.color
+        const sz = field === 'size' ? value : it.size
+        updated.description = `${(pName || '').trim()}${col ? ` - ${col.trim()}` : ''}${sz ? ` (${sz.trim()})` : ''}`
+      }
+      return updated
+    }))
   }
 
   const removeItem = (tempId: string) => setItems(prev => prev.filter(it => it.tempId !== tempId))
@@ -111,7 +144,10 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
 
   const handleSubmit = async () => {
     if (!clientId) { toast('Please select a client', 'error'); return }
-    if (items.some(it => !it.description.trim())) { toast('All items need a description', 'error'); return }
+    if (items.some(it => !it.description.trim() && !it.productName.trim())) {
+      toast('All items need a product name or description', 'error')
+      return
+    }
 
     setSaving(true)
     try {
@@ -127,14 +163,30 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
           isPaid: type === 'INVOICE' ? isPaid : false,
           paymentMethod: type === 'INVOICE' && isPaid ? paymentMethod : undefined,
           amountPaid: type === 'INVOICE' ? paidVal : 0,
-          items: items.map(it => ({
-            variantId: it.variantId || null,
-            description: it.description,
-            notes: it.notes || undefined,
-            qty: Number(it.qty),
-            buyingPrice: Number(it.buyingPrice),
-            sellingPrice: Number(it.sellingPrice),
-          }))
+          items: items.map(it => {
+            const pName = (it.productName || it.description || '').trim()
+            const col = (it.color || '').trim()
+            const sz = (it.size || '').trim()
+            const finalDesc = `${pName}${col ? ` - ${col}` : ''}${sz ? ` (${sz})` : ''}`
+
+            const tags = [
+              col ? `Color: ${col}` : '',
+              sz ? `Size: ${sz}` : ''
+            ].filter(Boolean).join(' | ')
+
+            const combinedNotes = (it.notes || '').trim()
+              ? (tags ? `${tags} • ${(it.notes || '').trim()}` : (it.notes || '').trim())
+              : (tags || undefined)
+
+            return {
+              variantId: it.variantId || null,
+              description: finalDesc,
+              notes: combinedNotes,
+              qty: Number(it.qty),
+              buyingPrice: Number(it.buyingPrice),
+              sellingPrice: Number(it.sellingPrice),
+            }
+          })
         })
       })
       const json = await res.json()
@@ -265,19 +317,64 @@ function DocumentBuilderInner({ type }: { type: 'QUOTATION' | 'INVOICE' }) {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 gap-2">
-                        <input
-                          className="input text-sm"
-                          placeholder="Description *"
-                          value={item.description}
-                          onChange={e => updateItem(item.tempId, 'description', e.target.value)}
-                        />
-                        <input
-                          className="input text-xs text-gray-600"
-                          placeholder='Notes / Embroidery text (e.g. Placement: Chest | Text: "Dr T")'
-                          value={item.notes}
-                          onChange={e => updateItem(item.tempId, 'notes', e.target.value)}
-                        />
+                      <div className="space-y-2">
+                        {/* Product Name */}
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                            Product Name *
+                          </label>
+                          <input
+                            className="input text-sm"
+                            placeholder="e.g. TANC Core Scrub Set, Diagnostic Stethoscope..."
+                            value={item.productName || item.description}
+                            onChange={e => updateItem(item.tempId, 'productName', e.target.value)}
+                          />
+                        </div>
+
+                        {/* Dedicated spaces for Color, Size, and Notes */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                              Color
+                            </label>
+                            <input
+                              className="input text-xs"
+                              placeholder="e.g. Petrol, Navy, Charcoal..."
+                              value={item.color}
+                              onChange={e => updateItem(item.tempId, 'color', e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                              Size
+                            </label>
+                            <input
+                              className="input text-xs"
+                              placeholder="e.g. XS, S, M, L, XL, 2XL..."
+                              value={item.size}
+                              onChange={e => updateItem(item.tempId, 'size', e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                              Embroidery / Notes
+                            </label>
+                            <input
+                              className="input text-xs text-gray-600"
+                              placeholder='e.g. Chest: "Dr. Matiashe"'
+                              value={item.notes}
+                              onChange={e => updateItem(item.tempId, 'notes', e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Preview description tag */}
+                        {(item.color || item.size) && (
+                          <div className="text-[11px] text-gray-500 bg-[#F8F9FA] px-2 py-1 border border-[#E5E5E5] flex items-center justify-between">
+                            <span>Quotation Label: <strong>{(item.productName || item.description || 'Product')}{item.color ? ` - ${item.color}` : ''}{item.size ? ` (${item.size})` : ''}</strong></span>
+                            <span className="text-[10px] text-[#C62828] font-bold">Standardized for TANC Order List</span>
+                          </div>
+                        )}
                         <div className="grid grid-cols-3 gap-2">
                           <div>
                             <label className="label text-[10px]">Qty</label>
