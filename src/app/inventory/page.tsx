@@ -93,14 +93,17 @@ export default function InventoryCatalogPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link href="/inventory/orders" className="btn-primary text-xs flex items-center gap-1.5">
+            <ClipboardList size={14} /> TANC Order List
+          </Link>
           <Link href="/inventory/stocktake" className="btn-secondary text-xs flex items-center gap-1.5">
             <ClipboardList size={14} /> Stock Take Mode
           </Link>
           <Link href="/inventory/movements" className="btn-secondary text-xs flex items-center gap-1.5">
             <RefreshCw size={14} /> Movement Log
           </Link>
-          <Link href="/inventory/receive" className="btn-primary text-xs flex items-center gap-1.5">
+          <Link href="/inventory/receive" className="btn-secondary text-xs flex items-center gap-1.5">
             <ArrowDownToLine size={14} /> Receive Stock
           </Link>
         </div>
@@ -138,12 +141,20 @@ export default function InventoryCatalogPage() {
             <h2 className="text-xs font-black uppercase tracking-wider text-[#111111]">
               Orders Pressed / Awaiting Stock ({pressedQuotes.length} active order{pressedQuotes.length > 1 ? 's' : ''})
             </h2>
-            <Link
-              href="/inventory/receive"
-              className="btn-primary text-xs"
-            >
-              Receive Stock to Fulfill &rarr;
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/inventory/orders"
+                className="btn-primary text-xs"
+              >
+                View TANC Order List &rarr;
+              </Link>
+              <Link
+                href="/inventory/receive"
+                className="btn-secondary text-xs"
+              >
+                Receive Stock &rarr;
+              </Link>
+            </div>
           </div>
           <p className="text-xs text-gray-500">
             The following quotations have requested items currently out of stock. Stock incoming via Receive Stock will automatically clear these orders for invoicing.
